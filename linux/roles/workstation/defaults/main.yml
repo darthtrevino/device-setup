@@ -23,3 +23,7 @@ workstation_bashrcd: "{{ workstation_home }}/.bashrc.d"
 workstation_applications_dir: "{{ workstation_home }}/.local/share/applications"
 workstation_fonts_dir: "{{ workstation_home }}/.local/share/fonts"
 workstation_config_dir: "{{ workstation_home }}/.config"
+
+# Per-user binaries. Fedora's stock ~/.bashrc prepends this to PATH ahead of
+# /usr/bin, so a wrapper dropped here shadows the system copy of the same name.
+workstation_local_bin: "{{ workstation_home }}/.local/bin"
