@@ -1,3 +1,7 @@
 ---
 # Starship is not packaged for Fedora, so the upstream installer is used.
 starship_bin_dir: /usr/local/bin
+
+# Prompt configuration. The shipped starship.toml is a gruvbox_dark powerline
+# theme that renders Nerd Font glyphs, hence the nerd_fonts_hack dependency.
+starship_config_path: "{{ workstation_config_dir }}/starship.toml"

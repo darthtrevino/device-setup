@@ -10,6 +10,7 @@ workstation_home: "{{ ansible_facts['env']['HOME'] }}"
 # appending to ~/.bashrc directly.
 workstation_bashrcd: "{{ workstation_home }}/.bashrc.d"
 
-# Where per-user desktop entries and fonts live.
+# Where per-user desktop entries, fonts and application config live.
 workstation_applications_dir: "{{ workstation_home }}/.local/share/applications"
 workstation_fonts_dir: "{{ workstation_home }}/.local/share/fonts"
+workstation_config_dir: "{{ workstation_home }}/.config"

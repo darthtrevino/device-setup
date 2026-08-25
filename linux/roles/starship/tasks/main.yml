@@ -18,6 +18,19 @@
         path: /tmp/starship-install.sh
         state: absent
 
+- name: Ensure the user configuration directory exists
+  ansible.builtin.file:
+    path: "{{ workstation_config_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Install the Starship prompt configuration
+  ansible.builtin.copy:
+    src: starship.toml
+    dest: "{{ starship_config_path }}"
+    mode: "0644"
+    backup: true
+
 - name: Install the Starship shell integration snippet
   ansible.builtin.copy:
     src: starship.sh

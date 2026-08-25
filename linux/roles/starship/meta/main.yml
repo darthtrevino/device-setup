@@ -1,3 +1,6 @@
 ---
 dependencies:
   - role: bashrcd
+  # The shipped prompt draws powerline separators and language glyphs that
+  # only exist in a Nerd Font; without one the prompt renders as tofu boxes.
+  - role: nerd_fonts_hack
