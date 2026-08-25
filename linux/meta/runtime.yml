@@ -1,0 +1,5 @@
+---
+# Minimum ansible-core this collection is known to work against. The roles use
+# ansible_facts[...] indexing throughout rather than the top-level ansible_*
+# injected variables, which are removed in ansible-core 2.24.
+requires_ansible: ">=2.15.0"

@@ -1,0 +1,49 @@
+---
+# This repository doubles as an Ansible collection so that other repositories
+# — notably the work provisioning repo, which is in a private org this machine
+# cannot always reach — can consume these roles without vendoring or path
+# assumptions:
+#
+#   # requirements.yml
+#   collections:
+#     - name: https://github.com/daxpryce/comtrya-recipes.git
+#       type: git
+#       version: main
+#
+# Roles are then referenced by FQCN, e.g. daxpryce.workstation.starship, which
+# removes any chance of a name collision with a consuming repo's own roles.
+# The Comtrya-era apply.sh flat-merged two recipe trees and needed precedence
+# rules to resolve exactly that problem.
+#
+# Note: collections do NOT carry group_vars. That is why the shared variables
+# live in the workstation and zen carrier roles instead.
+namespace: daxpryce
+name: workstation
+version: 1.0.0
+readme: README.md
+authors:
+  - Dax Pryce
+description: >-
+  Ansible roles for provisioning a Fedora workstation: shell tooling, language
+  toolchains, rootless Podman, fonts, and Zen Browser with enterprise policy.
+license:
+  - MIT
+tags:
+  - linux
+  - tools
+  - fedora
+  - workstation
+  - desktop
+repository: https://github.com/daxpryce/comtrya-recipes
+issues: https://github.com/daxpryce/comtrya-recipes/issues
+dependencies: {}
+
+# Files that configure *this* repo as a control node; they are meaningless to a
+# consumer that installs the collection.
+build_ignore:
+  - ansible.cfg
+  - inventory.ini
+  - bootstrap.sh
+  - .github
+  - .ansible
+  - group_vars

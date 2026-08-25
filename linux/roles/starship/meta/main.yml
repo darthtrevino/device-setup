@@ -1,5 +1,7 @@
 ---
 dependencies:
+  # Supplies workstation_bashrcd and workstation_config_dir.
+  - role: workstation
   - role: bashrcd
   # The shipped prompt draws powerline separators and language glyphs that
   # only exist in a Nerd Font; without one the prompt renders as tofu boxes.

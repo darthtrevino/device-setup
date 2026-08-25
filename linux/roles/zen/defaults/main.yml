@@ -1,4 +1,11 @@
 ---
+# Variables shared by the zen_browser, zen_browser_extensions and
+# zen_browser_policies roles. Kept in one carrier role so the extension list
+# cannot drift between the role that downloads the XPIs and the template that
+# force-installs them by GUID.
+#
+# These are role defaults, so group_vars/ and host_vars/ still override them.
+
 # Zen Browser install prefix. The upstream tarball's top-level directory is
 # "zen", so extracting into /opt yields /opt/zen.
 zen_install_prefix: /opt

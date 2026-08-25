@@ -1,4 +1,13 @@
 ---
+# Shared workstation paths, carried as *role defaults* rather than in
+# group_vars/all so that roles stay self-contained and can be consumed from
+# another repository (see galaxy.yml). Role defaults are the lowest-precedence
+# source in Ansible, so anything set in group_vars/, host_vars/ or on the
+# command line still overrides these.
+#
+# Roles that reference any of these must depend on this role in
+# meta/main.yml; a dependency's defaults are in scope for the dependent role.
+
 # Identity of the human this workstation is being built for. Playbooks run
 # locally as that user and only escalate with `become:` where root is needed,
 # so these resolve to the invoking account rather than to root.

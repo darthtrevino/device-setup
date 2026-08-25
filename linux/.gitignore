@@ -1,0 +1,9 @@
+# ansible-lint and ansible-galaxy install collections here when galaxy.yml is
+# present at the repo root. Purely a build artifact.
+.ansible/
+
+# Output of `ansible-galaxy collection build`.
+*.tar.gz
+
+# Ansible retry files.
+*.retry

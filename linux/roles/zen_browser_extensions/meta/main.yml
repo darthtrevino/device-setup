@@ -1,3 +1,5 @@
 ---
 dependencies:
+  # Supplies zen_extensions and zen_install_dir.
+  - role: zen
   - role: zen_browser

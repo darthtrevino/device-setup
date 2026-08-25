@@ -1,3 +1,7 @@
 ---
 dependencies:
+  # Supplies workstation_applications_dir and workstation_bashrcd.
+  - role: workstation
+  # Supplies zen_install_dir, zen_install_prefix and zen_tarball_url.
+  - role: zen
   - role: bashrcd
