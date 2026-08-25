@@ -1,0 +1,42 @@
+---
+# Fedora's stock ~/.bashrc (from /etc/skel) already sources ~/.bashrc.d, so on
+# a normal Fedora install this role only has to guarantee the directory exists.
+# The sourcing loop is appended *only* when it is genuinely missing — adding it
+# unconditionally would source every snippet twice (starship would init twice,
+# PATH entries would be prepended twice, and so on).
+- name: Ensure ~/.bashrc.d exists
+  ansible.builtin.file:
+    path: "{{ workstation_bashrcd }}"
+    state: directory
+    mode: "0755"
+
+- name: Ensure ~/.bashrc exists
+  ansible.builtin.file:
+    path: "{{ workstation_home }}/.bashrc"
+    state: touch
+    mode: "0644"
+    access_time: preserve
+    modification_time: preserve
+
+- name: Check whether ~/.bashrc already sources ~/.bashrc.d
+  ansible.builtin.command:
+    cmd: "grep -qF '.bashrc.d' {{ workstation_home }}/.bashrc"
+  register: bashrcd_present
+  changed_when: false
+  check_mode: false
+  failed_when: false
+
+- name: Source every snippet in ~/.bashrc.d from ~/.bashrc
+  ansible.builtin.blockinfile:
+    path: "{{ workstation_home }}/.bashrc"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: bashrc.d"
+    block: |
+      if [ -d ~/.bashrc.d ]; then
+          for rc in ~/.bashrc.d/*; do
+              if [ -f "$rc" ]; then
+                  . "$rc"
+              fi
+          done
+          unset rc
+      fi
+  when: bashrcd_present.rc != 0

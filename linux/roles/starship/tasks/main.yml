@@ -1,0 +1,25 @@
+---
+- name: Install Starship
+  block:
+    - name: Download the Starship installer
+      ansible.builtin.get_url:
+        url: https://starship.rs/install.sh
+        dest: /tmp/starship-install.sh
+        mode: "0755"
+
+    - name: Run the Starship installer
+      become: true
+      ansible.builtin.command:
+        cmd: "/tmp/starship-install.sh --yes --bin-dir {{ starship_bin_dir }}"
+        creates: "{{ starship_bin_dir }}/starship"
+  always:
+    - name: Remove the Starship installer
+      ansible.builtin.file:
+        path: /tmp/starship-install.sh
+        state: absent
+
+- name: Install the Starship shell integration snippet
+  ansible.builtin.copy:
+    src: starship.sh
+    dest: "{{ workstation_bashrcd }}/starship.sh"
+    mode: "0644"

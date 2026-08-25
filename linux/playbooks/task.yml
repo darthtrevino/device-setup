@@ -1,0 +1,6 @@
+---
+- name: Install the Task runner
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - task

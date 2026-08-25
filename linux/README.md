@@ -1,59 +1,106 @@
-# personal-comtrya-recipes
+# workstation-ansible
 
-[Comtrya](https://comtrya.dev) manifests for provisioning my Linux workstations. Run all recipes or pick individual ones to set up a fresh system quickly.
+Ansible playbooks for provisioning my Fedora workstations.
+
+Previously these were [Comtrya](https://comtrya.dev) manifests; Comtrya is no
+longer maintained, so everything has been ported to Ansible roles.
 
 ## Supported Distributions
 
-| Distribution | Supported |
-|--------------|-----------|
-| Ubuntu       | ✅        |
-| Linux Mint   | ✅        |
-| Fedora       | ✅        |
+**Fedora (x86_64) only.** Earlier revisions of this repo also targeted Ubuntu
+and Linux Mint; all `apt`-based branches have been removed. Everything here
+assumes `dnf`, RPM packaging, and Fedora package names.
 
-All recipes target **x86_64** with **glibc**.
-
-## Usage
+## Getting Started
 
 ```bash
-# Apply everything
-comtrya -d ./ apply
+# One time per machine: installs ansible-core, ansible-lint and collections
+sudo ./bootstrap.sh
 
-# Apply specific recipes
-comtrya -d ./ apply -m bottom,starship,docker
+# Build the whole workstation (-K prompts once for your sudo password)
+ansible-playbook playbooks/workstation.yml -K
+
+# Or run a single role
+ansible-playbook playbooks/podman.yml -K
+
+# Preview without changing anything
+ansible-playbook playbooks/workstation.yml -K --check --diff
 ```
 
-## Recipes
-
-| Recipe | Description | Distros |
-|--------|-------------|---------|
-| `bashrcd-standard` | Creates `~/.bashrc.d` directory and wires it into bash startup | Ubuntu, Linux Mint |
-| `bottom` | Installs [bottom](https://github.com/ClementTsang/bottom) system monitor from latest GitHub release | Ubuntu, Linux Mint, Fedora |
-| `catppuccin-gnome-terminal` | Installs Catppuccin theme for GNOME Terminal | All |
-| `discord` | Installs Discord (RPM Fusion on Fedora, `.deb` on Ubuntu/Mint) | Ubuntu, Linux Mint, Fedora |
-| `docker` | Installs Docker Engine, enables the daemon, and adds user to `docker` group | Ubuntu, Linux Mint, Fedora |
-| `git` | Installs Git (with PPA for latest version on Ubuntu/Mint) | All |
-| `jq` | Installs jq | All |
-| `just` | Installs [just](https://github.com/casey/just) command runner | Ubuntu, Linux Mint, Fedora |
-| `nerd-fonts-hack` | Installs Hack Nerd Font into `~/.local/share/fonts` | All |
-| `no-notifications` | Disables GNOME event sounds | All |
-| `rpmfusion` | Enables RPM Fusion free and nonfree repositories | Fedora |
-| `starship` | Installs [Starship](https://starship.rs) prompt with bashrc integration | Ubuntu, Linux Mint, Fedora |
-| `task` | Installs [Task](https://taskfile.dev) runner | Ubuntu, Linux Mint, Fedora |
-| `vim` | Installs Vim | All |
-| `vscode` | Installs Visual Studio Code | Ubuntu, Linux Mint, Fedora |
-| `zen-browser` | Installs [Zen Browser](https://zen-browser.app) to `/opt/zen` | All |
-| `zen-browser-extensions` | Installs extensions for Zen Browser via enterprise policies | All |
-| `zen-browser-settings` | Configures Zen Browser settings via enterprise policies | All |
-
-## Dependencies Between Recipes
+## Layout
 
 ```
-starship → bashrcd-standard
-discord → rpmfusion (Fedora only)
-zen-browser-extensions → zen-browser
+ansible.cfg          # inventory, roles_path, output formatting
+bootstrap.sh         # installs ansible + collections on a fresh machine
+inventory.ini        # [workstations] -> localhost, connection=local
+group_vars/all/      # user paths (main.yml) and Zen Browser config (zen.yml)
+playbooks/           # workstation.yml (everything) + one per role
+roles/<role>/        # defaults/ files/ handlers/ meta/ tasks/ templates/
 ```
 
-## LLM / AI Context
+Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 
-- `llms.txt` — Full Comtrya documentation reference for LLM consumption
-- `.github/copilot-instructions.md` — Recipe-writing conventions and preferences
+## Roles
+
+| Role | Description |
+|------|-------------|
+| `bashrcd` | Ensures `~/.bashrc.d` exists and is sourced by `~/.bashrc` |
+| `bottom` | Installs [bottom](https://github.com/ClementTsang/bottom) from the latest upstream release RPM |
+| `catppuccin_gnome_terminal` | Installs the Catppuccin GNOME Terminal profiles and defaults to Mocha |
+| `discord` | Installs Discord from RPM Fusion nonfree |
+| `git` | Installs Git |
+| `golang` | Installs the latest Go toolchain into `/usr/local/go` |
+| `jq` | Installs jq |
+| `just` | Installs the [just](https://github.com/casey/just) command runner |
+| `nerd_fonts_hack` | Installs Hack Nerd Font and sets it as the desktop monospace font |
+| `no_notifications` | Disables GNOME event sounds |
+| `podman` | Installs **rootless** Podman and exposes a Docker-compatible socket |
+| `rpmfusion` | Enables the RPM Fusion free and nonfree repositories |
+| `rust` | Installs Rust via rustup and keeps toolchains updated |
+| `starship` | Installs the [Starship](https://starship.rs) prompt |
+| `task` | Installs the [Task](https://taskfile.dev) runner from Cloudsmith |
+| `tealdeer` | Installs tealdeer and primes the tldr cache |
+| `vim` | Installs Vim (`vim-enhanced`) |
+| `vscode` | Installs Visual Studio Code from Microsoft's dnf repository |
+| `zen_browser` | Installs [Zen Browser](https://zen-browser.app) to `/opt/zen` |
+| `zen_browser_extensions` | Downloads extension XPIs into the Zen install |
+| `zen_browser_policies` | Renders Zen's `policies.json` enterprise policy |
+
+## Role Dependencies
+
+Declared in each role's `meta/main.yml`, so the single-role playbooks are
+correct on their own. Ansible de-duplicates shared dependencies within a run.
+
+```
+starship, golang, rust, podman, zen_browser  ->  bashrcd
+discord                                      ->  rpmfusion
+zen_browser_extensions, zen_browser_policies ->  zen_browser
+```
+
+## Notes on the Comtrya Port
+
+- **Docker was replaced by rootless Podman.** No root daemon and no `docker`
+  group; the `podman` role removes any Docker Engine packages, enables
+  `podman.socket` in the user's systemd scope, and exports `DOCKER_HOST` so
+  Docker-API clients keep working.
+- **`bashrcd` is conditional.** Fedora's stock `~/.bashrc` already sources
+  `~/.bashrc.d`, so the role only appends the loop when it is genuinely
+  missing — otherwise every snippet would be sourced twice.
+- **Zen policies are one template.** The Comtrya version shelled out to `jq`
+  to merge two JSON files at apply time. `policies.json` is now rendered from
+  a single template that shares the `zen_extensions` list with the extensions
+  role, so extension GUIDs and XPI filenames cannot drift apart.
+- **`vscode` and `task` use real dnf repositories** instead of one-off package
+  downloads, so `dnf upgrade` keeps them current.
+- **Idempotency.** Comtrya's `command.run` steps ran unconditionally; the
+  Ansible equivalents are guarded with `creates:`, `stat` checks, or a
+  `gsettings get` before `set`. Read-only probes set `check_mode: false` so
+  `--check` runs report accurately.
+
+## Linting
+
+```bash
+ansible-lint
+```
+
+The repo is clean at ansible-lint's `production` profile.

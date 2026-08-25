@@ -1,0 +1,31 @@
+---
+- name: Check whether the Task dnf repository is configured
+  ansible.builtin.stat:
+    path: "{{ task_repo_file }}"
+  register: task_repo
+
+- name: Configure the Task dnf repository
+  when: not task_repo.stat.exists
+  block:
+    - name: Download the Cloudsmith repository setup script
+      ansible.builtin.get_url:
+        url: "{{ task_repo_setup_url }}"
+        dest: /tmp/task-setup.rpm.sh
+        mode: "0755"
+
+    - name: Run the Cloudsmith repository setup script
+      become: true
+      ansible.builtin.command:
+        cmd: bash /tmp/task-setup.rpm.sh
+        creates: "{{ task_repo_file }}"
+  always:
+    - name: Remove the repository setup script
+      ansible.builtin.file:
+        path: /tmp/task-setup.rpm.sh
+        state: absent
+
+- name: Install the Task runner
+  become: true
+  ansible.builtin.dnf:
+    name: task
+    state: present

@@ -1,0 +1,49 @@
+---
+- name: Ensure python3 is available for the Catppuccin installer
+  become: true
+  ansible.builtin.dnf:
+    name: python3
+    state: present
+
+- name: Read the existing GNOME Terminal profile list
+  ansible.builtin.command:
+    cmd: gsettings get org.gnome.Terminal.ProfilesList list
+  register: catppuccin_gnome_terminal_profiles
+  changed_when: false
+  check_mode: false
+  failed_when: false
+
+- name: Install the Catppuccin GNOME Terminal profiles
+  when: catppuccin_gnome_terminal_mocha_profile_uuid not in (catppuccin_gnome_terminal_profiles.stdout | default(''))
+  block:
+    - name: Download the Catppuccin installer
+      ansible.builtin.get_url:
+        url: "{{ catppuccin_gnome_terminal_installer_url }}"
+        dest: /tmp/catppuccin_gnome_terminal-install.py
+        mode: "0644"
+
+    - name: Run the Catppuccin installer (installs all four flavours)
+      ansible.builtin.command:
+        cmd: python3 /tmp/catppuccin_gnome_terminal-install.py
+      changed_when: true
+  always:
+    - name: Remove the downloaded installer
+      ansible.builtin.file:
+        path: /tmp/catppuccin_gnome_terminal-install.py
+        state: absent
+
+- name: Read the current default GNOME Terminal profile
+  ansible.builtin.command:
+    cmd: gsettings get org.gnome.Terminal.ProfilesList default
+  register: catppuccin_gnome_terminal_default_profile
+  changed_when: false
+  check_mode: false
+  failed_when: false
+
+- name: Make Catppuccin Mocha the default GNOME Terminal profile
+  ansible.builtin.command:
+    cmd: "gsettings set org.gnome.Terminal.ProfilesList default {{ catppuccin_gnome_terminal_mocha_profile_uuid }}"
+  changed_when: true
+  when:
+    - catppuccin_gnome_terminal_default_profile.rc == 0
+    - catppuccin_gnome_terminal_mocha_profile_uuid not in catppuccin_gnome_terminal_default_profile.stdout

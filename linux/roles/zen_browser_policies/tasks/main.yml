@@ -1,0 +1,22 @@
+---
+# The Comtrya version of this shelled out to `jq` to merge two policy files at
+# apply time. Rendering the whole document from one template removes the merge
+# step entirely and makes the effective policy readable in the repository.
+- name: Ensure the Zen Browser distribution directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ zen_install_dir }}/distribution"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install the Zen Browser enterprise policy
+  become: true
+  ansible.builtin.template:
+    src: policies.json.j2
+    dest: "{{ zen_install_dir }}/distribution/policies.json"
+    owner: root
+    group: root
+    mode: "0644"
+    validate: "python3 -c 'import json,sys; json.load(open(sys.argv[1]))' %s"

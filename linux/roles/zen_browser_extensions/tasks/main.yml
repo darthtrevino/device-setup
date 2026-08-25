@@ -1,0 +1,34 @@
+---
+# Extensions are pre-staged as XPIs on disk and then force-installed by the
+# enterprise policy written by the zen_browser_policies role; the two share the
+# `zen_extensions` list so the filenames always line up.
+- name: Ensure the Zen Browser extensions directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ zen_install_dir }}/browser/extensions"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Resolve the latest XPI URL for each extension from addons.mozilla.org
+  ansible.builtin.uri:
+    url: "https://addons.mozilla.org/api/v5/addons/addon/{{ item.slug }}/"
+    return_content: true
+  register: zen_browser_extensions_metadata
+  check_mode: false
+  loop: "{{ zen_extensions }}"
+  loop_control:
+    label: "{{ item.slug }}"
+
+- name: Download each extension XPI
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ item.json.current_version.file.url }}"
+    dest: "{{ zen_install_dir }}/browser/extensions/{{ item.item.guid }}.xpi"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ zen_browser_extensions_metadata.results }}"
+  loop_control:
+    label: "{{ item.item.slug }}"

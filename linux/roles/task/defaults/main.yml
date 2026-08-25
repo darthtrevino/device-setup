@@ -1,0 +1,6 @@
+---
+# Task is published through Cloudsmith. Their setup script writes the repo
+# definition (including the rotating signing key), so it is run once and then
+# guarded by the file it creates.
+task_repo_setup_url: https://dl.cloudsmith.io/public/task/task/setup.rpm.sh
+task_repo_file: /etc/yum.repos.d/task-task.repo

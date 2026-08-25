@@ -1,0 +1,5 @@
+---
+# bottom is not in the Fedora repositories, so it is installed straight from
+# the upstream release RPM.
+bottom_repo: ClementTsang/bottom
+bottom_version: latest

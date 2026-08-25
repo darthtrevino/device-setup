@@ -1,0 +1,40 @@
+---
+# Full workstation build. Roles are ordered so that repositories and shell
+# plumbing land before the things that depend on them; meta/main.yml
+# dependencies keep the directed single-role playbooks correct on their own.
+- name: Provision a Fedora workstation
+  hosts: workstations
+  gather_facts: true
+  roles:
+    # ── Repositories and shell plumbing ──
+    - rpmfusion
+    - bashrcd
+
+    # ── Command line tooling ──
+    - git
+    - vim
+    - jq
+    - just
+    - task
+    - tealdeer
+    - bottom
+    - starship
+
+    # ── Language toolchains ──
+    - golang
+    - rust
+
+    # ── Containers ──
+    - podman
+
+    # ── Desktop applications ──
+    - vscode
+    - discord
+    - zen_browser
+    - zen_browser_extensions
+    - zen_browser_policies
+
+    # ── Desktop look and feel ──
+    - nerd_fonts_hack
+    - catppuccin_gnome_terminal
+    - no_notifications

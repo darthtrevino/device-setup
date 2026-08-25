@@ -1,0 +1,3 @@
+---
+# tldr keeps its page cache per-user, so priming it has to happen unprivileged.
+tealdeer_cache_marker: "{{ workstation_home }}/.cache/tealdeer/tldr-pages"

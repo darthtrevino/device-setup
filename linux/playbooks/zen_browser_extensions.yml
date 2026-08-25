@@ -1,0 +1,6 @@
+---
+- name: Install Zen Browser extensions
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - zen_browser_extensions

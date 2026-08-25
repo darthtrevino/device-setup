@@ -1,0 +1,6 @@
+---
+- name: Install Discord from RPM Fusion nonfree
+  become: true
+  ansible.builtin.dnf:
+    name: discord
+    state: present

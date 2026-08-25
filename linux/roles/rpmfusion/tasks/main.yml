@@ -1,0 +1,10 @@
+---
+- name: Enable the RPM Fusion free and nonfree repositories
+  become: true
+  ansible.builtin.dnf:
+    name:
+      - "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ ansible_facts['distribution_major_version'] }}.noarch.rpm"
+      - "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ ansible_facts['distribution_major_version'] }}.noarch.rpm"
+    state: present
+    # The release RPMs ship the GPG keys they would otherwise be verified with.
+    disable_gpg_check: true

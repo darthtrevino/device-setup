@@ -1,0 +1,5 @@
+---
+catppuccin_gnome_terminal_installer_url: https://raw.githubusercontent.com/catppuccin/gnome-terminal/v1.0.0/install.py
+
+# UUIDs are hardcoded by the upstream installer; Mocha is the one we default to.
+catppuccin_gnome_terminal_mocha_profile_uuid: 95894cfd-82f7-430d-af6e-84d168bc34f5

@@ -1,0 +1,17 @@
+---
+- name: Install tealdeer
+  become: true
+  ansible.builtin.dnf:
+    name: tealdeer
+    state: present
+
+- name: Check whether the tldr page cache has been primed
+  ansible.builtin.stat:
+    path: "{{ tealdeer_cache_marker }}"
+  register: tealdeer_cache
+
+- name: Prime the tldr page cache
+  ansible.builtin.command:
+    cmd: tldr --update
+  changed_when: true
+  when: not tealdeer_cache.stat.exists

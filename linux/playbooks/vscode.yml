@@ -1,0 +1,6 @@
+---
+- name: Install Visual Studio Code
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - vscode

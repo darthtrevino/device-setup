@@ -1,0 +1,6 @@
+---
+- name: Install Vim
+  become: true
+  ansible.builtin.dnf:
+    name: vim-enhanced
+    state: present

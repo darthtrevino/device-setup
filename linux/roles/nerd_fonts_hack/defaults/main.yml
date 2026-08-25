@@ -1,0 +1,4 @@
+---
+# Applied to the desktop as the monospace font once the fonts are in place.
+nerd_fonts_hack_set_monospace: true
+nerd_fonts_hack_monospace_font: Hack Nerd Font Mono Regular 10

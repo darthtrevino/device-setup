@@ -1,0 +1,3 @@
+---
+# Starship is not packaged for Fedora, so the upstream installer is used.
+starship_bin_dir: /usr/local/bin

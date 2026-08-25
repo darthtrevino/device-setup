@@ -1,0 +1,15 @@
+---
+# Identity of the human this workstation is being built for. Playbooks run
+# locally as that user and only escalate with `become:` where root is needed,
+# so these resolve to the invoking account rather than to root.
+workstation_user: "{{ ansible_facts['user_id'] }}"
+workstation_home: "{{ ansible_facts['env']['HOME'] }}"
+
+# Drop-in directory sourced by ~/.bashrc; roles that need shell integration
+# (starship, golang, rust, zen) write a single snippet in here instead of
+# appending to ~/.bashrc directly.
+workstation_bashrcd: "{{ workstation_home }}/.bashrc.d"
+
+# Where per-user desktop entries and fonts live.
+workstation_applications_dir: "{{ workstation_home }}/.local/share/applications"
+workstation_fonts_dir: "{{ workstation_home }}/.local/share/fonts"

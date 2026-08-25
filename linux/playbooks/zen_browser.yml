@@ -1,0 +1,6 @@
+---
+- name: Install Zen Browser
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - zen_browser

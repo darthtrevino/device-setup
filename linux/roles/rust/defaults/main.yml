@@ -1,0 +1,5 @@
+---
+# Rust is managed by rustup in the user's home directory, not by dnf, so
+# toolchains and components can be switched per-project.
+rust_rustup_home: "{{ workstation_home }}/.cargo"
+rust_update_on_run: true

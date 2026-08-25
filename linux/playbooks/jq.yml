@@ -1,0 +1,6 @@
+---
+- name: Install jq
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - jq

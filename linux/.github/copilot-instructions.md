@@ -1,96 +1,90 @@
-# Copilot Instructions for personal-comtrya-recipes
+# Copilot Instructions for workstation-ansible
 
-This repository contains Comtrya manifests (recipes) for provisioning Linux systems.
-
-**Important:** The full Comtrya documentation is available in `llms.txt` at the repo root. Always consult `llms.txt` first for Comtrya usage, action syntax, and context variables — do not fetch from external URLs.
-
-## Repository Structure
-
-Each recipe is a directory with a `main.yaml` entrypoint and an optional `files/` subdirectory for assets (scripts, config files, etc.):
-
-```
-recipe-name/
-  main.yaml
-  files/
-    some-script.sh
-    some-config.conf
-```
+This repository contains Ansible playbooks and roles for provisioning Fedora
+workstations. It was previously a set of [Comtrya](https://comtrya.dev)
+manifests; Comtrya is unmaintained and the port is complete — do not add new
+Comtrya recipes.
 
 ## Target Systems
 
-Recipes in this repo target **x86_64 Linux** systems running:
-- **Ubuntu**
-- **Linux Mint**
-- **Fedora**
+**Fedora on x86_64, and nothing else.** Ubuntu/Linux Mint/Debian support has
+been deliberately removed. Do not reintroduce `apt`, `.deb` handling, PPAs, or
+`ansible_distribution` branches for Debian-family systems. Assume `dnf`, RPM
+packaging, glibc, and Fedora package names (`vim-enhanced`, not `vim`).
 
-All three use **glibc** (not musl). When downloading architecture-specific binaries or packages, use the glibc/gnu variant.
+## Repository Structure
+
+Standard Ansible layout:
+
+```
+ansible.cfg          # inventory, roles_path, output formatting
+bootstrap.sh         # installs ansible-core/ansible-lint/collections
+inventory.ini        # [workstations] -> localhost ansible_connection=local
+group_vars/all/      # shared variables
+playbooks/           # workstation.yml + one playbook per role
+roles/<role>/        # defaults/ files/ handlers/ meta/ tasks/ templates/
+```
+
+Every role gets a matching single-role playbook in `playbooks/`, and is added
+to `playbooks/workstation.yml` in the correct order.
 
 ## Conventions
 
-### Detecting the OS / Distribution
+### Naming
 
-**Do not** detect the distribution from within shell scripts (e.g. sourcing `/etc/os-release`). Instead, rely on Comtrya's built-in context variables:
+- Role directories are `snake_case` (`zen_browser`, not `zen-browser`) to
+  satisfy ansible-lint's `role-name` rule. Playbook filenames match the role.
+- Variables defined in a role must be prefixed with the role name
+  (`rust_rustup_home`, `zen_browser_flatpak`) per `var-naming[no-role-prefix]`.
+  Variables shared across roles belong in `group_vars/all/`.
+- Play and task names start with a capital letter (`name[casing]`).
 
-- Use `where` clauses: `where: 'os.distribution == "Ubuntu" || os.distribution == "Linux Mint"'`
-- Use template variables: `{{ os.distribution }}`, `{{ os.name }}`, `{{ os.version }}`
-- Pass distribution info to scripts as CLI arguments from the manifest, e.g.:
-  ```yaml
-  args:
-    - files/script.sh
-    - "{{ os.distribution }}"
-  ```
+### Privilege Escalation
 
-See the Contexts section in `llms.txt` for all available variables.
+`become` is off by default in `ansible.cfg`. Playbooks run as the workstation
+user and set `become: true` only on the individual tasks that need root. Run
+playbooks with `-K`. Never write a role that assumes it runs wholly as root.
 
-### Known `os.distribution` Values
+### Packages
 
-Comtrya uses the `os_info` Rust crate, whose `Display` impl determines the exact string values.
-The distributions this repo targets use these exact values:
+Use `ansible.builtin.dnf`. Prefer a real repository (`yum_repository` +
+`rpm_key`) over downloading a one-off `.rpm`, so `dnf upgrade` keeps things
+current. Use `disable_gpg_check: true` only for release RPMs that ship their
+own key (RPM Fusion) or upstream GitHub release artifacts.
 
-| System     | `os.distribution` value |
-|------------|-------------------------|
-| Ubuntu     | `"Ubuntu"`              |
-| Linux Mint | `"Linux Mint"`          |
-| Fedora     | `"Fedora"`              |
-| Windows    | `"Windows"`             |
+### Containers
 
-Source: https://docs.rs/os_info/latest/src/os_info/os_type.rs.html (the `Display` trait implementation)
+Rootless **Podman**, never Docker. No root daemon, no `docker` group. A
+Docker-compatible socket is exposed via `DOCKER_HOST` for tools that only
+speak the Docker API.
 
-### Downloading Files
+### Idempotency
 
-- **Prefer `file.download`** over `curl` in `command.run` when downloading a single file from a known URL.
-- Use `command.run` with a helper script only when the URL must be computed dynamically (e.g. resolving the latest GitHub release tag).
+Comtrya's `command.run` ran unconditionally; Ansible equivalents must not.
+Guard `command`/`shell` with `creates:`, a preceding `stat`, or a read of
+current state (`gsettings get` before `gsettings set`). Read-only probe tasks
+should set `changed_when: false` **and** `check_mode: false` so `--check` runs
+evaluate their conditionals correctly.
 
-### Installing Packages
+Prefer real modules over shelling out: `get_url` over `curl`, `unarchive` over
+`tar`, `template` over `jq` merges, `blockinfile` over appending with `cat`.
 
-- Use `package.install` with the appropriate `provider` (`apt`, `dnf`) whenever possible.
-- For distro-specific packages, use `where` clauses to branch:
-  ```yaml
-  - action: package.install
-    where: 'os.distribution == "Ubuntu" || os.distribution == "Linux Mint"'
-    name: package-name
-    provider: apt
+### Shell Integration
 
-  - action: package.install
-    where: 'os.distribution == "Fedora"'
-    name: package-name
-    provider: dnf
-  ```
-- Local `.deb`/`.rpm` files can be installed via `package.install` by pointing `name` to the local file path.
+Roles that need shell setup drop a single file into `~/.bashrc.d/` and depend
+on the `bashrcd` role via `meta/main.yml`. Do not append to `~/.bashrc`
+directly. Note that Fedora's stock `~/.bashrc` already sources `~/.bashrc.d`,
+so `bashrcd` only adds the loop when it is actually missing.
 
-### Helper Scripts
+### Comments
 
-- Place helper scripts in the recipe's `files/` directory.
-- Make scripts accept configurable arguments (e.g. destination directory) rather than hardcoding paths.
-- Prefer passing Comtrya context variables as script arguments over having scripts detect system info themselves.
+Explain *why*, not *what* — especially where a Fedora quirk, an upstream bug,
+or a deliberate deviation from the obvious approach drove the implementation.
 
-### File Permissions (chmod)
+## Validation
 
-- The `chmod` value must be a **string**, not a bare integer. YAML parses bare `755` as an integer, which Comtrya rejects (`invalid type: integer, expected a string`).
-- Valid: `chmod: "0755"`, `chmod: "755"`, or `chmod: 0755` (YAML treats the leading zero as an octal string literal).
-- Invalid: `chmod: 755` (parsed as integer by YAML).
-
-### Style
-
-- Use comments to label sections, especially when the same logical step has distro-specific variants.
-- Follow the `── Description (Distro) ──` comment style used in existing recipes.
+```bash
+ansible-lint                                     # must stay clean (production profile)
+ansible-playbook --syntax-check playbooks/<p>.yml
+ansible-playbook playbooks/<p>.yml -K --check --diff
+```

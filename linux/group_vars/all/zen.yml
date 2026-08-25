@@ -1,0 +1,36 @@
+---
+# Zen Browser install prefix. The upstream tarball's top-level directory is
+# "zen", so extracting into /opt yields /opt/zen.
+zen_install_prefix: /opt
+zen_install_dir: "{{ zen_install_prefix }}/zen"
+zen_tarball_url: https://github.com/zen-browser/desktop/releases/latest/download/zen.linux-x86_64.tar.xz
+
+# Extensions force-installed via enterprise policy. `slug` is the addons.mozilla.org
+# slug used to resolve the latest XPI; `guid` is the extension ID, which must be
+# the on-disk filename for Firefox-family browsers to pick it up.
+zen_extensions:
+  - slug: ublock-origin
+    guid: uBlock0@raymondhill.net
+  - slug: bitwarden-password-manager
+    guid: "{446900e4-71c2-419f-a6a7-df9c091e268b}"
+  - slug: kagi-search-for-firefox
+    guid: search@kagi.com
+
+# Non-extension policy knobs rendered into the same policies.json.
+zen_policies_picture_in_picture: false
+zen_policies_dns_over_https: false
+zen_policies_password_manager: false
+
+# about:config preferences pinned as policy defaults (users can still change
+# them; "default" status only sets the initial value).
+# NOTE: signon.rememberSignons was a *string* "false" in the Comtrya-era
+# policies file, which Firefox-family browsers treat as truthy. It is a real
+# boolean here.
+zen_policies_preferences:
+  browser.aboutConfig.showWarning: false
+  browser.urlbar.suggest.clipboard: false
+  browser.urlbar.suggest.engines: false
+  browser.urlbar.suggest.openpage: false
+  browser.urlbar.suggest.bookmark: false
+  signon.firefoxRelay.feature: disabled
+  signon.rememberSignons: false

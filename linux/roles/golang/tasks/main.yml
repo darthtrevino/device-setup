@@ -1,0 +1,47 @@
+---
+- name: Resolve the latest Go release
+  ansible.builtin.uri:
+    url: https://go.dev/VERSION?m=text
+    return_content: true
+  register: golang_latest
+  check_mode: false
+  when: golang_version == 'latest'
+
+- name: Select the Go version to install
+  ansible.builtin.set_fact:
+    golang_resolved_version: >-
+      {{ (golang_latest.content.splitlines() | first | trim) if golang_version == 'latest' else golang_version }}
+
+- name: Read the currently installed Go version
+  ansible.builtin.command:
+    cmd: "{{ golang_install_dir }}/bin/go version"
+  register: golang_installed
+  changed_when: false
+  check_mode: false
+  failed_when: false
+
+- name: Install Go
+  when: golang_resolved_version not in (golang_installed.stdout | default(''))
+  block:
+    - name: Remove the previous Go installation
+      become: true
+      ansible.builtin.file:
+        path: "{{ golang_install_dir }}"
+        state: absent
+
+    # Unpacked straight from the URL rather than downloading to /tmp first:
+    # one task instead of three, and nothing left behind to clean up.
+    - name: Unpack Go into {{ golang_install_dir | dirname }}
+      become: true
+      ansible.builtin.unarchive:
+        src: "https://go.dev/dl/{{ golang_resolved_version }}.linux-amd64.tar.gz"
+        dest: "{{ golang_install_dir | dirname }}"
+        remote_src: true
+        owner: root
+        group: root
+
+- name: Install the Go shell integration snippet
+  ansible.builtin.copy:
+    src: golang.sh
+    dest: "{{ workstation_bashrcd }}/golang.sh"
+    mode: "0644"

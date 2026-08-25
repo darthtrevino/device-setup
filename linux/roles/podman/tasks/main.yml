@@ -1,0 +1,64 @@
+---
+- name: Remove the Docker Engine packages podman replaces
+  become: true
+  ansible.builtin.dnf:
+    name:
+      - docker
+      - docker-ce
+      - docker-ce-cli
+      - docker-compose
+      - docker-engine
+      - docker-latest
+      - docker-latest-logrotate
+      - docker-logrotate
+      - containerd.io
+    state: absent
+    autoremove: false
+
+- name: Remove any leftover Docker CE dnf repository
+  become: true
+  ansible.builtin.file:
+    path: /etc/yum.repos.d/docker-ce.repo
+    state: absent
+
+- name: Install Podman and rootless container tooling
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ podman_packages }}"
+    state: present
+
+- name: Ensure the user has a subuid range for rootless user namespaces
+  become: true
+  ansible.builtin.command:
+    cmd: "usermod --add-subuids 100000-165535 --add-subgids 100000-165535 {{ workstation_user }}"
+  register: podman_subid
+  changed_when: podman_subid.rc == 0
+  failed_when: false
+
+- name: Keep the user's systemd instance alive across logouts
+  become: true
+  ansible.builtin.command:
+    cmd: "loginctl enable-linger {{ workstation_user }}"
+    creates: "/var/lib/systemd/linger/{{ workstation_user }}"
+  when: podman_enable_linger | bool
+
+- name: Enable the rootless Podman API socket for the user
+  ansible.builtin.systemd_service:
+    name: podman.socket
+    scope: user
+    enabled: true
+    state: started
+  when: podman_enable_docker_socket | bool
+
+- name: Ensure ~/.bashrc.d exists
+  ansible.builtin.file:
+    path: "{{ workstation_bashrcd }}"
+    state: directory
+    mode: "0755"
+
+- name: Install the Podman shell integration snippet
+  ansible.builtin.copy:
+    src: podman.sh
+    dest: "{{ workstation_bashrcd }}/podman.sh"
+    mode: "0644"
+  when: podman_enable_docker_socket | bool
