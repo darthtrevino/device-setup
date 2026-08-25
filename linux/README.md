@@ -57,7 +57,8 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `podman` | Installs **rootless** Podman and exposes a Docker-compatible socket |
 | `rpmfusion` | Enables the RPM Fusion free and nonfree repositories |
 | `rust` | Installs Rust via rustup and keeps toolchains updated |
-| `starship` | Installs the [Starship](https://starship.rs) prompt |
+| `sshd` | Enables and starts the OpenSSH server, and opens it in firewalld |
+| `starship` | Installs the [Starship](https://starship.rs) prompt and its configuration |
 | `task` | Installs the [Task](https://taskfile.dev) runner from Cloudsmith |
 | `tealdeer` | Installs tealdeer and primes the tldr cache |
 | `vim` | Installs Vim (`vim-enhanced`) |
@@ -73,6 +74,7 @@ correct on their own. Ansible de-duplicates shared dependencies within a run.
 
 ```
 starship, golang, rust, podman, zen_browser  ->  bashrcd
+starship                                     ->  nerd_fonts_hack
 discord                                      ->  rpmfusion
 zen_browser_extensions, zen_browser_policies ->  zen_browser
 ```

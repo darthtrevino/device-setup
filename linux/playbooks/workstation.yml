@@ -20,6 +20,9 @@
     - bottom
     - starship
 
+    # ── Remote access ──
+    - sshd
+
     # ── Language toolchains ──
     - golang
     - rust
