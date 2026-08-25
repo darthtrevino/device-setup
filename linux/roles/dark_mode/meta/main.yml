@@ -1,0 +1,4 @@
+---
+# Depends on the workstation carrier role for workstation_config_dir.
+dependencies:
+  - role: workstation

@@ -1,0 +1,20 @@
+---
+# Cinnamon has no dark-mode toggle in its UI, but GTK apps, Electron apps and
+# websites (via prefers-color-scheme) all ask the XDG desktop portal what the
+# system preference is. Without this role the portal answers "no preference"
+# and everything renders light.
+dark_mode_color_scheme: prefer-dark
+
+# The portal backend that answers org.freedesktop.impl.portal.Settings.
+# xdg-desktop-portal-xapp is Cinnamon's default and implements the Settings
+# interface, but has no concept of a colour scheme, so it always reports "no
+# preference". The GTK backend reads org.gnome.desktop.interface color-scheme,
+# which is the value we actually set below.
+dark_mode_settings_backend: gtk
+
+# Reproduced from /usr/share/xdg-desktop-portal/x-cinnamon-portals.conf.
+# xdg-desktop-portal uses the *first* portals.conf it finds rather than merging
+# them, so a user-level file that only carried our Settings override would
+# silently drop these and break the keyring and file-chooser portals.
+dark_mode_portal_default: xapp;gtk;
+dark_mode_portal_secret: gnome-keyring;

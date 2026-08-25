@@ -1,0 +1,8 @@
+# {{ ansible_managed }}
+#
+# Routes the Settings portal to the GTK backend so that the system dark-mode
+# preference is actually reported to applications. See the dark_mode role.
+[preferred]
+default={{ dark_mode_portal_default }}
+org.freedesktop.impl.portal.Settings={{ dark_mode_settings_backend }};
+org.freedesktop.impl.portal.Secret={{ dark_mode_portal_secret }}
