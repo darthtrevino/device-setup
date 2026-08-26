@@ -93,7 +93,13 @@ zen_browser_extensions, zen_browser_policies ->  zen_browser
   a single template that shares the `zen_extensions` list with the extensions
   role, so extension GUIDs and XPI filenames cannot drift apart.
 - **`vscode` and `task` use real dnf repositories** instead of one-off package
-  downloads, so `dnf upgrade` keeps them current.
+  downloads, so `dnf upgrade` keeps them current. `task` deliberately does not
+  run Cloudsmith's `setup.rpm.sh`: that script pins `sslcacert` to
+  `/etc/pki/tls/certs/ca-bundle.crt`, a path Fedora's `ca-certificates` no
+  longer provides, so every `dnf` transaction failed the repo with
+  `Curl error (77)`. The role declares the repository itself and lets it use
+  the system trust store. It also drops the empty `-noarch` and `-source`
+  repositories the script created.
 - **Idempotency.** Comtrya's `command.run` steps ran unconditionally; the
   Ansible equivalents are guarded with `creates:`, `stat` checks, or a
   `gsettings get` before `set`. Read-only probes set `check_mode: false` so

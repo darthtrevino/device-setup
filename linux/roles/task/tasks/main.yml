@@ -1,28 +1,37 @@
 ---
-- name: Check whether the Task dnf repository is configured
-  ansible.builtin.stat:
-    path: "{{ task_repo_file }}"
-  register: task_repo
+- name: Import the Task repository signing key
+  become: true
+  ansible.builtin.rpm_key:
+    key: "{{ task_repo_gpgkey }}"
+    state: present
+
+# Written before the repository itself so a machine set up by the old Cloudsmith
+# script converges on the same three-section-free file.
+- name: Remove the empty Task sub-repositories
+  become: true
+  ansible.builtin.yum_repository:
+    name: "{{ item }}"
+    file: "{{ task_repo_file }}"
+    state: absent
+  loop: "{{ task_repo_stale_repos }}"
 
 - name: Configure the Task dnf repository
-  when: not task_repo.stat.exists
-  block:
-    - name: Download the Cloudsmith repository setup script
-      ansible.builtin.get_url:
-        url: "{{ task_repo_setup_url }}"
-        dest: /tmp/task-setup.rpm.sh
-        mode: "0755"
-
-    - name: Run the Cloudsmith repository setup script
-      become: true
-      ansible.builtin.command:
-        cmd: bash /tmp/task-setup.rpm.sh
-        creates: "{{ task_repo_file }}"
-  always:
-    - name: Remove the repository setup script
-      ansible.builtin.file:
-        path: /tmp/task-setup.rpm.sh
-        state: absent
+  become: true
+  ansible.builtin.yum_repository:
+    name: "{{ task_repo_name }}"
+    file: "{{ task_repo_file }}"
+    description: Task, published through Cloudsmith
+    baseurl: "{{ task_repo_baseurl }}"
+    gpgkey: "{{ task_repo_gpgkey }}"
+    gpgcheck: true
+    repo_gpgcheck: true
+    # A third-party repo should not be able to block a system-wide upgrade.
+    skip_if_unavailable: true
+    # Cloudsmith's script set 300s, which re-fetches metadata on almost every
+    # dnf invocation. Task releases nothing like that often.
+    metadata_expire: 6h
+    enabled: true
+    state: present
 
 - name: Install the Task runner
   become: true

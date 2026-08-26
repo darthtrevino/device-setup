@@ -1,6 +1,16 @@
 ---
-# Task is published through Cloudsmith. Their setup script writes the repo
-# definition (including the rotating signing key), so it is run once and then
-# guarded by the file it creates.
-task_repo_setup_url: https://dl.cloudsmith.io/public/task/task/setup.rpm.sh
-task_repo_file: /etc/yum.repos.d/task-task.repo
+# Task is published through Cloudsmith. Their setup.rpm.sh is deliberately not
+# used: it hardcodes /etc/pki/tls/certs/ca-bundle.crt as sslcacert, and Fedora's
+# ca-certificates no longer ships that compatibility symlink, so every dnf
+# transaction failed this repo with "Curl error (77)". Declaring the repo here
+# lets it use the system trust store, which is correct on any Fedora.
+task_repo_name: task-task
+task_repo_file: task-task
+task_repo_baseurl: https://dl.cloudsmith.io/public/task/task/rpm/fedora/$releasever/$basearch
+task_repo_gpgkey: https://dl.cloudsmith.io/public/task/task/gpg.046FD1186CA342F0.key
+
+# The setup script also defined -noarch and -source repos in the same file. Both
+# are empty upstream, so they only cost a metadata fetch on every refresh.
+task_repo_stale_repos:
+  - task-task-noarch
+  - task-task-source
