@@ -6,7 +6,7 @@
 #
 #   # requirements.yml
 #   collections:
-#     - name: https://github.com/daxpryce/comtrya-recipes.git
+#     - name: https://github.com/daxpryce/ansible-playbooks.git
 #       type: git
 #       version: main
 #
@@ -34,8 +34,8 @@ tags:
   - fedora
   - workstation
   - desktop
-repository: https://github.com/daxpryce/comtrya-recipes
-issues: https://github.com/daxpryce/comtrya-recipes/issues
+repository: https://github.com/daxpryce/ansible-playbooks
+issues: https://github.com/daxpryce/ansible-playbooks/issues
 dependencies: {}
 
 # Files that configure *this* repo as a control node; they are meaningless to a
