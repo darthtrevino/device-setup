@@ -1,0 +1,7 @@
+---
+dependencies:
+  # Supplies workstation_config_dir.
+  - role: workstation
+  # The shipped configuration sets Hack Nerd Font Mono as the terminal font;
+  # without it WezTerm silently falls back and every glyph renders as tofu.
+  - role: nerd_fonts_hack

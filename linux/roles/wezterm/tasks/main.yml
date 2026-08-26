@@ -1,0 +1,39 @@
+---
+- name: Import the WezTerm COPR signing key
+  become: true
+  ansible.builtin.rpm_key:
+    key: "{{ wezterm_copr_gpgkey }}"
+    state: present
+
+- name: Configure the WezTerm dnf repository
+  become: true
+  ansible.builtin.yum_repository:
+    name: "copr-{{ wezterm_copr_owner }}-{{ wezterm_copr_project }}"
+    description: "Copr repo for {{ wezterm_copr_project }} owned by {{ wezterm_copr_owner }}"
+    baseurl: "{{ wezterm_copr_baseurl }}"
+    gpgcheck: true
+    gpgkey: "{{ wezterm_copr_gpgkey }}"
+    # A third-party repo should not be able to block a system-wide upgrade.
+    skip_if_unavailable: true
+    enabled: true
+    state: present
+
+- name: Install WezTerm
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ wezterm_package }}"
+    state: present
+
+- name: Ensure the WezTerm configuration directory exists
+  ansible.builtin.file:
+    path: "{{ wezterm_config_dir }}"
+    state: directory
+    mode: "0755"
+
+# WezTerm watches this file and reloads on save, so no restart is needed.
+- name: Install the WezTerm configuration
+  ansible.builtin.copy:
+    src: wezterm.lua
+    dest: "{{ wezterm_config_path }}"
+    mode: "0644"
+    backup: true

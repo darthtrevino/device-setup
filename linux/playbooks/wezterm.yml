@@ -1,0 +1,6 @@
+---
+- name: Install the WezTerm terminal emulator
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - wezterm

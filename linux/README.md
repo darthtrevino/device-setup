@@ -64,6 +64,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `tealdeer` | Installs tealdeer and primes the tldr cache |
 | `vim` | Installs Vim (`vim-enhanced`) |
 | `vscode` | Installs Visual Studio Code from Microsoft's dnf repository |
+| `wezterm` | Installs [WezTerm](https://wezterm.org) and its Lua configuration |
 | `zen_browser` | Installs [Zen Browser](https://zen-browser.app) to `/opt/zen` |
 | `zen_browser_extensions` | Downloads extension XPIs into the Zen install |
 | `zen_browser_policies` | Renders Zen's `policies.json` enterprise policy |
@@ -75,7 +76,7 @@ correct on their own. Ansible de-duplicates shared dependencies within a run.
 
 ```
 starship, golang, rust, podman, zen_browser  ->  bashrcd
-starship                                     ->  nerd_fonts_hack
+starship, wezterm                            ->  nerd_fonts_hack
 discord                                      ->  rpmfusion
 zen_browser_extensions, zen_browser_policies ->  zen_browser
 ```
@@ -105,6 +106,18 @@ zen_browser_extensions, zen_browser_policies ->  zen_browser
   Ansible equivalents are guarded with `creates:`, `stat` checks, or a
   `gsettings get` before `set`. Read-only probes set `check_mode: false` so
   `--check` runs report accurately.
+
+## WezTerm
+
+Upstream publishes no stable Fedora channel — their own Fedora instructions
+point at the `wezfurlong/wezterm-nightly` COPR, so that is what the role uses.
+Expect it to update often; builds land several times a day, and with
+`dnf_automatic` enabled they will be applied on the daily timer.
+
+The configuration goes to `~/.config/wezterm/wezterm.lua`. WezTerm checks that
+path *before* `~/.wezterm.lua`, so an old dotfile in `$HOME` cannot shadow it.
+WezTerm watches the file and reloads on save, so no restart is needed after the
+role updates it.
 
 ## Unattended Updates
 

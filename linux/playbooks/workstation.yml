@@ -35,6 +35,7 @@
     - podman
 
     # ── Desktop applications ──
+    - wezterm
     - vscode
     - discord
     - zen_browser

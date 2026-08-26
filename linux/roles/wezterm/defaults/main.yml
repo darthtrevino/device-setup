@@ -1,0 +1,22 @@
+---
+# WezTerm is not in Fedora's repositories, and upstream publishes no stable
+# Fedora channel -- their own Fedora instructions point at this nightly COPR.
+#
+# Declared here rather than enabled with `dnf copr enable`, which is an
+# unguarded command this role would have to make idempotent by hand, and which
+# hides gpgcheck and metadata_expire behind a generated file.
+wezterm_copr_owner: wezfurlong
+wezterm_copr_project: wezterm-nightly
+wezterm_copr_baseurl: >-
+  https://download.copr.fedorainfracloud.org/results/{{ wezterm_copr_owner }}/{{ wezterm_copr_project }}/fedora-$releasever-$basearch/
+wezterm_copr_gpgkey: >-
+  https://download.copr.fedorainfracloud.org/results/{{ wezterm_copr_owner }}/{{ wezterm_copr_project }}/pubkey.gpg
+
+# The metapackage, which pulls in wezterm-gui and wezterm-common.
+wezterm_package: wezterm
+
+# WezTerm reads $XDG_CONFIG_HOME/wezterm/wezterm.lua ahead of $HOME/.wezterm.lua,
+# so this location both is the conventional one and wins over an older dotfile
+# left in the home directory.
+wezterm_config_dir: "{{ workstation_config_dir }}/wezterm"
+wezterm_config_path: "{{ wezterm_config_dir }}/wezterm.lua"
