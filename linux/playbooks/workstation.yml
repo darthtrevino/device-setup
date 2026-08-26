@@ -10,6 +10,10 @@
     - rpmfusion
     - bashrcd
 
+    # ── System maintenance ──
+    # After rpmfusion, so unattended upgrades cover it from the first run.
+    - dnf_automatic
+
     # ── Command line tooling ──
     - git
     - vim

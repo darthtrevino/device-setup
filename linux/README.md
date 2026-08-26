@@ -48,6 +48,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `bottom` | Installs [bottom](https://github.com/ClementTsang/bottom) from the latest upstream release RPM |
 | `catppuccin_gnome_terminal` | Installs the Catppuccin GNOME Terminal profiles and defaults to Mocha |
 | `discord` | Installs Discord from RPM Fusion nonfree |
+| `dnf_automatic` | Applies package updates unattended on a daily timer |
 | `git` | Installs Git |
 | `golang` | Installs the latest Go toolchain into `/usr/local/go` |
 | `jq` | Installs jq |
@@ -104,6 +105,32 @@ zen_browser_extensions, zen_browser_policies ->  zen_browser
   Ansible equivalents are guarded with `creates:`, `stat` checks, or a
   `gsettings get` before `set`. Read-only probes set `check_mode: false` so
   `--check` runs report accurately.
+
+## Unattended Updates
+
+`dnf_automatic` keeps the machine patched without prompting. On Fedora 44 this
+is the dnf5 plugin (`dnf5-plugin-automatic`), not the old standalone
+`dnf-automatic`; it ships `/etc/dnf/automatic.conf` empty and keeps its defaults
+in `/usr/share/dnf5/dnf5-plugins/automatic.conf`, so the role writes only the
+keys it changes.
+
+Updates are downloaded **and applied** daily (the packaged timer fires at 06:00
+with an hour of jitter, and `Persistent=true` catches up after a machine that
+was powered off). The system is never rebooted automatically — that stays a
+deliberate act. This only ever upgrades *within* the installed Fedora release;
+it cannot start a version upgrade.
+
+`dnf-automatic.timer` also exists, but it is a symlink to `dnf5-automatic.timer`
+rather than a second timer, so systemd treats them as one unit under two names.
+The role acts on the real unit; `systemctl is-enabled dnf-automatic.timer`
+reporting `alias` is expected.
+
+Results go to the journal:
+
+```bash
+journalctl -u dnf5-automatic.service
+systemctl list-timers dnf5-automatic.timer
+```
 
 ## Linting
 

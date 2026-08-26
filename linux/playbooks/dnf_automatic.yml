@@ -1,0 +1,6 @@
+---
+- name: Enable unattended package updates
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - dnf_automatic
