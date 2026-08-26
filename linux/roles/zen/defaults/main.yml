@@ -23,6 +23,17 @@ zen_extensions:
   - slug: kagi-search-for-firefox
     guid: search@kagi.com
 
+# Extension point for builds that layer on top of this one (e.g. the work
+# repository adding an Entra SSO extension that is not published on AMO).
+# Entries take either `slug` (resolved through the addons.mozilla.org API) or
+# `url` (a direct XPI download, for extensions distributed outside AMO).
+zen_extensions_extra: []
+
+# Both the extensions role and the policy template iterate this, so a layered
+# build only has to append to zen_extensions_extra to get an extension both
+# staged on disk and force-installed by policy.
+zen_all_extensions: "{{ zen_extensions + zen_extensions_extra }}"
+
 # Non-extension policy knobs rendered into the same policies.json.
 zen_policies_picture_in_picture: false
 zen_policies_dns_over_https: false
