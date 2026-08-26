@@ -12,9 +12,11 @@ zen_install_prefix: /opt
 zen_install_dir: "{{ zen_install_prefix }}/zen"
 zen_tarball_url: https://github.com/zen-browser/desktop/releases/latest/download/zen.linux-x86_64.tar.xz
 
-# Extensions force-installed via enterprise policy. `slug` is the addons.mozilla.org
-# slug used to resolve the latest XPI; `guid` is the extension ID, which must be
-# the on-disk filename for Firefox-family browsers to pick it up.
+# Extensions force-installed via enterprise policy. `guid` is the extension ID,
+# which must be the on-disk filename for Firefox-family browsers to pick it up.
+# Each entry takes either `slug` (resolved to the latest XPI through the
+# addons.mozilla.org API) or `url` (a direct download, for extensions
+# distributed outside AMO).
 zen_extensions:
   - slug: ublock-origin
     guid: uBlock0@raymondhill.net
@@ -22,17 +24,6 @@ zen_extensions:
     guid: "{446900e4-71c2-419f-a6a7-df9c091e268b}"
   - slug: kagi-search-for-firefox
     guid: search@kagi.com
-
-# Extension point for builds that layer on top of this one (e.g. the work
-# repository adding an Entra SSO extension that is not published on AMO).
-# Entries take either `slug` (resolved through the addons.mozilla.org API) or
-# `url` (a direct XPI download, for extensions distributed outside AMO).
-zen_extensions_extra: []
-
-# Both the extensions role and the policy template iterate this, so a layered
-# build only has to append to zen_extensions_extra to get an extension both
-# staged on disk and force-installed by policy.
-zen_all_extensions: "{{ zen_extensions + zen_extensions_extra }}"
 
 # Non-extension policy knobs rendered into the same policies.json.
 zen_policies_picture_in_picture: false

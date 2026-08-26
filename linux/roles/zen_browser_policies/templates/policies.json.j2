@@ -1,7 +1,7 @@
 {
   "policies": {
     "ExtensionSettings": {
-{% for ext in zen_all_extensions %}
+{% for ext in zen_extensions %}
       {{ ext.guid | to_json }}: {
         "installation_mode": "force_installed",
         "install_url": "file://{{ zen_install_dir }}/browser/extensions/{{ ext.guid }}.xpi"
