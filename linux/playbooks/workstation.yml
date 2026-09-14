@@ -43,6 +43,7 @@
     # ── Hardware integration ──
     - surface_dial
     - gaze
+    - voxtype
 
     # ── Desktop applications ──
     - wezterm

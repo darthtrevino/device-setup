@@ -91,6 +91,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `uv` | Installs Astral's Python package and project manager from Fedora |
 | `vim` | Installs Vim (`vim-enhanced`) |
 | `vscode` | Installs Visual Studio Code from Microsoft's dnf repository |
+| `voxtype` | Installs [Voxtype](https://github.com/peteonrails/voxtype) voice-to-text with a KDE toggle shortcut |
 | `wallpaper_randomizer` | Selects a random KDE wallpaper at startup and every 15 minutes |
 | `wezterm` | Installs [WezTerm](https://wezterm.org) and its Lua configuration |
 | `zen_browser` | Installs [Zen Browser](https://zen-browser.app) to `/opt/zen` |
@@ -108,6 +109,7 @@ nvm                                           ->  git, bashrcd
 kde_orthocal                                  ->  git, workstation
 kde_launchers                                 ->  steam, spotify, discord, bitwarden, microsoft_edge
 herdr                                         ->  workstation
+voxtype                                       ->  workstation
 starship, wezterm                            ->  nerd_fonts_hack
 bitwarden, discord, spotify                  ->  flatpak
 steam                                        ->  rpmfusion
@@ -125,6 +127,11 @@ Provisioning cannot complete these, so the roles prompt for them instead.
   Run `gaze add-face` (or use the Gaze GUI) to enrol a face; the playbook
   prints a reminder whenever the current user has none. Until a face exists
   every Gaze prompt falls through to the password stack.
+- **Voxtype dictation.** KWin reports no key releases, so push-to-talk is not
+  possible and the `voxtype` role binds `Meta+Shift+V` to
+  `voxtype record toggle` instead: press once to start dictating, again to
+  stop. The binding is registered through KGlobalAccel's D-Bus API because
+  `kglobalshortcutsrc` is owned and rewritten by `kwin_wayland`.
 
 ## Notes on the Comtrya Port
 

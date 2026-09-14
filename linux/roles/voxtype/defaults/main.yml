@@ -1,0 +1,29 @@
+---
+# Upstream publishes a signed RPM per release but no yum repository, so the
+# release artifact is pinned by version instead.
+voxtype_version: 1.0.1
+voxtype_rpm_url: >-
+  https://github.com/peteonrails/voxtype/releases/download/v{{ voxtype_version }}/voxtype-{{ voxtype_version }}-1.x86_64.rpm
+
+# dotool is the upstream recommendation for KDE, but it is not packaged for
+# Fedora, so typing goes through wtype and falls back to the clipboard.
+# pipewire-alsa is required: without it capture fails with "device not
+# available".
+voxtype_packages:
+  - wtype
+  - wl-clipboard
+  - libnotify
+  - pipewire-alsa
+
+voxtype_model: base.en
+voxtype_language: en
+
+# KWin emits no key-release events, so push-to-talk is impossible and recording
+# is toggled instead: one press starts, the next stops.
+voxtype_shortcut: Meta+Shift+V
+# KGlobalAccel's D-Bus API takes a Qt keycode, not the human-readable name:
+# Qt::Key_V (0x56) | Qt::MetaModifier (0x10000000) | Qt::ShiftModifier
+# (0x02000000). Recompute this when changing voxtype_shortcut.
+voxtype_shortcut_keycode: 301989974
+voxtype_shortcut_name: Voxtype Toggle
+voxtype_shortcut_desktop_file: voxtype-toggle.desktop

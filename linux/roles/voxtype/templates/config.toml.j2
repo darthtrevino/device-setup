@@ -1,0 +1,26 @@
+state_file = "auto"
+
+[hotkey]
+# KWin cannot report key releases, so the built-in evdev hotkey is off and a KDE
+# global shortcut drives `voxtype record toggle` instead. This also avoids
+# needing the user in the `input` group.
+enabled = false
+
+[audio]
+device = "default"
+sample_rate = 16000
+max_duration_secs = 60
+pause_media = true
+
+[whisper]
+model = "{{ voxtype_model }}"
+language = "{{ voxtype_language }}"
+translate = false
+
+[output]
+mode = "type"
+fallback_to_clipboard = true
+# dotool is absent on Fedora, so wtype handles typing and the clipboard catches
+# anything it cannot insert.
+driver_order = ["wtype", "clipboard"]
+type_delay_ms = 1

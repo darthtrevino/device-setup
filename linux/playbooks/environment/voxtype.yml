@@ -1,0 +1,6 @@
+---
+- name: Install Voxtype voice-to-text
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - voxtype
