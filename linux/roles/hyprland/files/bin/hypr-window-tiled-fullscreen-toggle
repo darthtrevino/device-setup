@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+active=$(hyprctl -j activewindow)
+address=$(jq -r '.address // empty' <<<"$active")
+
+if [[ -z "$address" ]]; then
+    notify-send -u critical "Unable to toggle tiled fullscreen" \
+        "No active window was found."
+    exit 1
+fi
+
+fullscreen_client=$(jq -r '.fullscreenClient // 0' <<<"$active")
+if [[ "$fullscreen_client" == "2" ]]; then
+    state=0
+else
+    state=2
+fi
+
+hyprctl dispatch \
+    "hl.dsp.window.fullscreen_state({ internal = 0, client = $state })" \
+    >/dev/null

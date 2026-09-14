@@ -22,3 +22,17 @@
     mode: "0755"
     force: true
   when: herdr_version | regex_replace('^v', '') not in (herdr_installed.stdout | default(''))
+
+- name: Ensure the herdr configuration directory exists
+  ansible.builtin.file:
+    path: "{{ herdr_config_dir }}"
+    state: directory
+    mode: "0755"
+  when: herdr_configure_keybindings | bool
+
+- name: Install the Omarchy keybinding profile
+  ansible.builtin.copy:
+    src: config.toml
+    dest: "{{ herdr_config_dir }}/config.toml"
+    mode: "0644"
+  when: herdr_configure_keybindings | bool

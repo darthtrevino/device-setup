@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# omarchy:summary=Select and set the system timezone
+# omarchy:group=menu
+# omarchy:name=timezone
+
+set -e
+
+timezone=$(timedatectl list-timezones | rofi -dmenu -i -p "Set timezone") || exit 1
+pkexec timedatectl set-timezone "$timezone"
+omarchy-shell -q omarchy.clock refresh
+omarchy-notification-send "Timezone is now set to $timezone"

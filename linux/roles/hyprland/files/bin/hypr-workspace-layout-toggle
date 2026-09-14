@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+workspace_json=$(hyprctl -j activeworkspace)
+workspace_id=$(jq -r '.id' <<<"$workspace_json")
+current_layout=$(jq -r '.tiledLayout' <<<"$workspace_json")
+
+if [[ ! "$workspace_id" =~ ^-?[0-9]+$ ]]; then
+    notify-send --urgency=critical "Unable to change workspace layout"
+    exit 1
+fi
+
+if [[ "$current_layout" == "dwindle" ]]; then
+    new_layout="scrolling"
+else
+    new_layout="dwindle"
+fi
+
+if ! hyprctl eval \
+    "hl.workspace_rule({ workspace = \"$workspace_id\", layout = \"$new_layout\" })" \
+    >/dev/null
+then
+    hyprctl keyword workspace "$workspace_id, layout:$new_layout" >/dev/null
+fi
+
+notify-send --urgency=low "Workspace layout: $new_layout"

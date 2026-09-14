@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+choice=$(
+    printf '%s\n' \
+        "Lock" \
+        "Suspend" \
+        "Log out" \
+        "Reboot" \
+        "Power off" |
+        rofi -dmenu -i -p "System" -no-custom
+)
+
+case "$choice" in
+    "Lock")
+        hyprlock
+        ;;
+    "Suspend")
+        systemctl suspend
+        ;;
+    "Log out")
+        hyprctl dispatch 'hl.dsp.exit()'
+        ;;
+    "Reboot")
+        systemctl reboot
+        ;;
+    "Power off")
+        systemctl poweroff
+        ;;
+esac

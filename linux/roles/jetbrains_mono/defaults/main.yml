@@ -1,0 +1,14 @@
+---
+# Pinned to a tagged Nerd Fonts release with its published checksum. The
+# archive is ~30 MB of TTFs, so it is fetched at provision time instead of
+# being vendored into the repository the way nerd_fonts_hack does.
+jetbrains_mono_version: 3.5.1
+jetbrains_mono_archive_checksum: >-
+  sha256:fab782a66f7d3019da64f6572db9fc5d3a4bcb19f9fa13e2d8a62e3693d6396e
+
+jetbrains_mono_url: >-
+  https://github.com/ryanoasis/nerd-fonts/releases/download/v{{ jetbrains_mono_version }}/JetBrainsMono.zip
+
+# Its own subdirectory so the archive can be re-extracted without disturbing
+# the Hack fonts that nerd_fonts_hack installs alongside it.
+jetbrains_mono_dir: "{{ workstation_fonts_dir }}/JetBrainsMonoNerdFont"

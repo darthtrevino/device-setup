@@ -58,6 +58,13 @@
     - zen_browser_extensions
     - zen_browser_policies
 
+    # ── Hyprland desktop ──
+    # Sits alongside the KDE session rather than replacing it; both are offered
+    # at the display manager. omarchy_shell pulls in hyprland via meta.
+    - jetbrains_mono
+    - hyprland
+    - omarchy_shell
+
     # ── Desktop look and feel ──
     - nerd_fonts_hack
     - catppuccin_gnome_terminal

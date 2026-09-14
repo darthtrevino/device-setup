@@ -7,3 +7,8 @@ herdr_binary: "{{ herdr_install_dir }}/herdr"
 herdr_architecture: x86_64
 herdr_release_url: >-
   https://github.com/herdrdev/herdr/releases/download/{{ herdr_version }}/herdr-linux-{{ herdr_architecture }}
+
+# Omarchy-style shortcut profile (ctrl+space prefix), matching the bindings the
+# Hyprland desktop uses. Set to false to leave an existing config.toml alone.
+herdr_configure_keybindings: true
+herdr_config_dir: "{{ workstation_config_dir }}/herdr"

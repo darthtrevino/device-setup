@@ -1,0 +1,8 @@
+---
+dependencies:
+  # Supplies workstation_home, workstation_config_dir and workstation_local_bin.
+  - role: workstation
+  # The bar, menus and terminal all reference the Nerd Font by family name.
+  - role: jetbrains_mono
+  # Super+Return and Super+Shift+N launch the terminal.
+  - role: wezterm

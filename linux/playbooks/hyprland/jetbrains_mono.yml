@@ -1,0 +1,6 @@
+---
+- name: Install the JetBrainsMono Nerd Font
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - jetbrains_mono

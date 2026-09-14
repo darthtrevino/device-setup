@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "omarchy.audio",
+  "name": "Audio",
+  "version": "1.0.0",
+  "author": "Omarchy",
+  "description": "Stable command-backed output volume and mute controls",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "Audio",
+    "description": "Stable command-backed output volume and mute controls",
+    "category": "Audio",
+    "allowMultiple": false
+  }
+}

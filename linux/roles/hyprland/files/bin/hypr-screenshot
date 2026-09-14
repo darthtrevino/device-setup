@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+mode=${1:-screen}
+directory="$HOME/Pictures/Screenshots"
+filename="Screenshot_$(date +'%Y-%m-%d_%H-%M-%S_%3N').png"
+output="$directory/$filename"
+
+mkdir -p "$directory"
+temporary=$(mktemp "$directory/.screenshot.XXXXXX.png")
+trap 'rm -f "$temporary"' EXIT
+
+case "$mode" in
+    screen)
+        monitor=$(hyprctl monitors -j | jq -r '.[] | select(.focused == true) | .name')
+        if [[ -z "$monitor" ]]; then
+            notify-send -u critical "Screenshot failed" "No focused monitor was found."
+            exit 1
+        fi
+        grim -o "$monitor" "$temporary"
+        ;;
+    region)
+        if ! geometry=$(slurp); then
+            exit 0
+        fi
+        grim -g "$geometry" "$temporary"
+        ;;
+    window)
+        geometry=$(
+            hyprctl activewindow -j | jq -r '
+                if (.address // "") == "" then
+                    empty
+                else
+                    "\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"
+                end
+            '
+        )
+        if [[ -z "$geometry" ]]; then
+            notify-send -u critical "Screenshot failed" "No active window was found."
+            exit 1
+        fi
+        grim -g "$geometry" "$temporary"
+        ;;
+    *)
+        notify-send -u critical "Screenshot failed" "Unknown capture mode: $mode"
+        exit 2
+        ;;
+esac
+
+mv "$temporary" "$output"
+trap - EXIT
+
+if ! wl-copy --type image/png <"$output"; then
+    notify-send -u critical "Screenshot saved" \
+        "$output"$'\n'"Clipboard copy failed."
+    exit 1
+fi
+
+notify-send -a Screenshots -i "$output" "Screenshot saved" \
+    "$output"$'\n'"Copied to clipboard."

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+exec kitty --class voxtype-config -e voxtype configure

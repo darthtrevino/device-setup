@@ -1,0 +1,81 @@
+---
+# Hyprland is not in Fedora proper. The nett00n COPR is the build the
+# temu-omarchy configuration is developed against.
+hyprland_copr: nett00n/hyprland
+hyprland_copr_repo: copr:copr.fedorainfracloud.org:nett00n:hyprland
+
+# The Lua configuration format requires Hyprland 0.56.0 or newer; an older
+# build silently ignores the file and drops the user into a default session.
+hyprland_minimum_version: 0.56.0
+
+# Programs the keybindings launch. Upstream hardcodes kitty; this workstation
+# already provisions wezterm, so the terminal is a variable rather than a fork
+# of the whole config.
+hyprland_terminal: wezterm
+hyprland_file_manager: dolphin
+hyprland_menu: rofi -show drun
+
+# Upstream ships a Dvorak layout. Kept as the default so the ported config
+# matches the machine it came from, but overridable without editing templates.
+hyprland_kb_layout: us
+hyprland_kb_variant: dvorak
+
+hyprland_config_dir: "{{ workstation_config_dir }}/hypr"
+
+# hyprpaper reads this directory directly and does its own timed shuffle, so
+# no randomiser script or systemd timer is needed on Hyprland.
+hyprland_wallpaper_dir: "{{ workstation_home }}/.wallpapers"
+
+# Helper scripts the keybindings call by name. The audio helpers
+# (hypr-audio-output-select, hypr-network-audio-safe, hypr-asahi-audio-ensure)
+# are deliberately excluded: this role does not manage audio.
+hyprland_helpers:
+  - hypr-dropdown-start
+  - hypr-emoji-picker
+  - hypr-herdr-keybindings
+  - hypr-keybindings
+  - hypr-screenshot
+  - hypr-system-menu
+  - hypr-window-pop
+  - hypr-window-tiled-fullscreen-toggle
+  - hypr-workspace-layout-toggle
+
+hyprland_packages:
+  - bluez
+  - breeze-icon-theme
+  - brightnessctl
+  - dolphin
+  - fontconfig
+  - glib2
+  - grim
+  - hypridle
+  - hyprland
+  - hyprlock
+  - hyprpaper
+  - hyprpolkitagent
+  - inotify-tools
+  - iproute
+  - iputils
+  - iw
+  - jq
+  - kf6-kconfig
+  - libnotify
+  - mako
+  - NetworkManager-tui
+  - NetworkManager-wifi
+  - pam-kwallet
+  - plasma-breeze
+  - playerctl
+  - python3
+  - rofi
+  - slurp
+  - tuned-ppd
+  # Supplies /usr/share/unicode/ucd/emoji/emoji-data.txt, which the emoji
+  # picker parses to build its rofi menu.
+  - unicode-ucd
+  - unzip
+  - upower
+  - vim-enhanced
+  - wl-clipboard
+  - wtype
+  - xdg-utils

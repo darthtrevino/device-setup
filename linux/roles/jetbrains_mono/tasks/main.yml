@@ -1,0 +1,27 @@
+---
+- name: Ensure the JetBrainsMono font directory exists
+  ansible.builtin.file:
+    path: "{{ jetbrains_mono_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Download the JetBrainsMono Nerd Font archive
+  ansible.builtin.get_url:
+    url: "{{ jetbrains_mono_url }}"
+    dest: "{{ jetbrains_mono_dir }}/JetBrainsMono-{{ jetbrains_mono_version }}.zip"
+    checksum: "{{ jetbrains_mono_archive_checksum }}"
+    mode: "0644"
+  register: jetbrains_mono_archive
+
+- name: Unpack the JetBrainsMono Nerd Font
+  ansible.builtin.unarchive:
+    src: "{{ jetbrains_mono_archive.dest }}"
+    dest: "{{ jetbrains_mono_dir }}"
+    remote_src: true
+    include:
+      - "*.ttf"
+    mode: "0644"
+    # fontconfig only needs the TTFs; the guard keys off the family fc-match
+    # resolves so a partial extraction is repaired on the next run.
+    creates: "{{ jetbrains_mono_dir }}/JetBrainsMonoNerdFont-Regular.ttf"
+  notify: rebuild font cache

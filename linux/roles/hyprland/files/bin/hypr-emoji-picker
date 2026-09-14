@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+for command in hyprctl jq notify-send python3 rofi wl-copy; do
+    if ! command -v "$command" >/dev/null 2>&1; then
+        notify-send -u critical "Emoji picker unavailable" \
+            "Missing required command: $command"
+        exit 1
+    fi
+done
+
+emoji_data=/usr/share/unicode/ucd/emoji/emoji-data.txt
+if [[ ! -r "$emoji_data" ]]; then
+    notify-send -u critical "Emoji picker unavailable" \
+        "Unicode emoji data is not installed."
+    exit 1
+fi
+
+selection=$(
+    rofi -dmenu -i -matching fuzzy -p "Emoji" -no-custom < <(
+        python3 - "$emoji_data" <<'PY'
+import pathlib
+import sys
+import unicodedata
+
+properties = {}
+for line in pathlib.Path(sys.argv[1]).read_text().splitlines():
+    data = line.partition("#")[0].strip()
+    if not data:
+        continue
+
+    codepoints, property_name = (part.strip() for part in data.split(";"))
+    if ".." in codepoints:
+        start, end = (int(value, 16) for value in codepoints.split(".."))
+    else:
+        start = end = int(codepoints, 16)
+
+    properties.setdefault(property_name, set()).update(range(start, end + 1))
+
+emoji = properties.get("Emoji", set())
+components = properties.get("Emoji_Component", set())
+emoji_presentation = properties.get("Emoji_Presentation", set())
+
+for codepoint in sorted(emoji - components):
+    character = chr(codepoint)
+    name = unicodedata.name(character, "")
+    if not name:
+        continue
+    if codepoint not in emoji_presentation:
+        character += "\ufe0f"
+    print(f"{character}\t{name.lower()}")
+PY
+    )
+) || exit 0
+
+emoji=${selection%%$'\t'*}
+[[ -n "$emoji" ]] || exit 0
+
+printf '%s' "$emoji" |
+    timeout 1 wl-copy --type text/plain --sensitive --foreground &
+
+sleep 0.15
+active_class=$(hyprctl activewindow -j | jq -r '.class // ""')
+case "$active_class" in
+    kitty|activity|cliamp|Alacritty|foot|org.wezfurlong.wezterm|com.mitchellh.ghostty)
+        paste_mods="CTRL SHIFT"
+        ;;
+    *)
+        paste_mods="CTRL"
+        ;;
+esac
+
+if ! hyprctl eval \
+    "hl.dispatch(hl.dsp.send_key_state({ mods = \"$paste_mods\", key = \"V\", state = \"down\" }))" \
+    >/dev/null; then
+    notify-send -u critical "Emoji insertion failed" \
+        "The selected emoji could not be sent to the focused application."
+    exit 1
+fi
+
+sleep 0.05
+hyprctl eval \
+    "hl.dispatch(hl.dsp.send_key_state({ mods = \"$paste_mods\", key = \"V\", state = \"up\" }))" \
+    >/dev/null

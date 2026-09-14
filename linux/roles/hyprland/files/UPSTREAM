@@ -1,0 +1,14 @@
+Hyprland helper scripts and companion configuration vendored from:
+
+Repository: https://github.com/darthtrevino/temu-omarchy
+Commit: 6279ec6cfab97de0de230f5c284fe3294abf8ca8
+
+Vendored paths:
+- bin/hypr-* (audio helpers deliberately excluded)
+- config/hypr/{hypridle,hyprlock,hyprpaper}.conf
+- config/mako/config      -> config/mako-config
+- config/rofi/config.rasi -> config/rofi-config.rasi
+- config/fontconfig/fonts.conf
+
+hyprland.lua is not vendored verbatim; templates/hyprland.lua.j2 is an adapted
+copy and records its own differences from upstream in a header comment.

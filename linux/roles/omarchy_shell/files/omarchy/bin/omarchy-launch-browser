@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# omarchy:summary=Launch the default browser as determined by xdg-settings.
+# omarchy:args=[url]
+
+url=""
+for argument in "$@"; do
+  if [[ $argument != "--private" ]]; then
+    url=$argument
+    break
+  fi
+done
+
+if [[ -n $url ]]; then
+  exec xdg-open "$url"
+fi
+
+default_browser=$(env -u BROWSER xdg-settings get default-web-browser)
+[[ -n $default_browser ]] || default_browser=$(xdg-mime query default x-scheme-handler/https)
+exec gtk-launch "$default_browser"

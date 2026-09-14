@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+sink=$(omarchy-audio-output-sink)
+[[ -n "$sink" ]] || sink=@DEFAULT_SINK@
+
+volume=$(
+    pactl get-sink-volume "$sink" |
+        awk -F/ 'NR == 1 {
+            value = $2
+            gsub(/[[:space:]%]/, "", value)
+            print value
+        }'
+)
+muted=$(pactl get-sink-mute "$sink" | awk '{ print $2 }')
+
+printf '%s\t%s\t%s\n' "${volume:-0}" "${muted:-no}" "$sink"

@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+active=$(hyprctl -j activewindow)
+address=$(jq -r '.address // empty' <<<"$active")
+
+if [[ -z "$address" ]]; then
+    notify-send -u critical "Unable to pop window" \
+        "No active window was found."
+    exit 1
+fi
+
+window="address:$address"
+pinned=$(jq -r '.pinned // false' <<<"$active")
+floating=$(jq -r '.floating // false' <<<"$active")
+is_pop=$(jq -r '(.tags // []) | index("pop") != null' <<<"$active")
+was_floating=$(jq -r '(.tags // []) | index("pop-original-floating") != null' <<<"$active")
+
+dispatch() {
+    hyprctl dispatch "$1" >/dev/null
+}
+
+if [[ "$pinned" == "true" && "$is_pop" == "true" ]]; then
+    dispatch "hl.dsp.window.pin({ window = \"$window\" })"
+    if [[ "$was_floating" != "true" ]]; then
+        dispatch "hl.dsp.window.float({ window = \"$window\", action = \"toggle\" })"
+    fi
+    dispatch "hl.dsp.window.tag({ window = \"$window\", tag = \"-pop\" })"
+    dispatch "hl.dsp.window.tag({ window = \"$window\", tag = \"-pop-original-floating\" })"
+    exit 0
+fi
+
+if [[ "$pinned" == "true" ]]; then
+    notify-send -u normal "Window is already pinned" \
+        "Unpin it before using the pop-window shortcut."
+    exit 1
+fi
+
+if [[ "$floating" == "true" ]]; then
+    dispatch "hl.dsp.window.tag({ window = \"$window\", tag = \"+pop-original-floating\" })"
+else
+    dispatch "hl.dsp.window.float({ window = \"$window\", action = \"toggle\" })"
+fi
+
+geometry=$(
+    hyprctl -j monitors | jq -r '
+        .[]
+        | select(.focused == true)
+        | [
+            ((.width / .scale) * 0.75 | floor),
+            ((.height / .scale) * 0.70 | floor)
+        ]
+        | @tsv
+    '
+)
+if [[ -z "$geometry" ]]; then
+    notify-send -u critical "Unable to pop window" \
+        "No focused monitor was found."
+    exit 1
+fi
+read -r width height <<<"$geometry"
+
+dispatch "hl.dsp.window.resize({ window = \"$window\", x = $width, y = $height })"
+dispatch "hl.dsp.window.center({ window = \"$window\" })"
+dispatch "hl.dsp.window.pin({ window = \"$window\" })"
+dispatch "hl.dsp.window.alter_zorder({ window = \"$window\", mode = \"top\" })"
+dispatch "hl.dsp.window.tag({ window = \"$window\", tag = \"+pop\" })"

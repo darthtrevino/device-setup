@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# omarchy:summary=Launch a floating terminal with the Omarchy presentation wrapper
+# omarchy:args=<command>
+
+exec kitty --class org.omarchy.terminal --title Omarchy -e bash -lc "$*"

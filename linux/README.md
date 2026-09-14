@@ -69,7 +69,9 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `github_cli` | Installs GitHub CLI from Fedora's package repository |
 | `github_copilot_cli` | Installs the native GitHub Copilot CLI |
 | `golang` | Installs the latest Go toolchain into `/usr/local/go` |
-| `herdr` | Installs the [herdr](https://github.com/herdrdev/herdr) coding-agent runtime |
+| `herdr` | Installs the [herdr](https://github.com/herdrdev/herdr) coding-agent runtime and the Omarchy keybinding profile |
+| `hyprland` | Installs the Hyprland desktop, its keybindings, helper scripts and hyprpaper wallpaper shuffle |
+| `jetbrains_mono` | Installs the JetBrainsMono Nerd Font |
 | `jq` | Installs jq |
 | `just` | Installs the [just](https://github.com/casey/just) command runner |
 | `kde_launchers` | Pins Steam, Spotify, Discord, Bitwarden and Edge to the KDE Task Manager |
@@ -78,6 +80,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `nerd_fonts_hack` | Installs Hack Nerd Font and sets it as the desktop monospace font |
 | `no_notifications` | Disables GNOME event sounds |
 | `nvm` | Installs Node Version Manager and Bash integration |
+| `omarchy_shell` | Installs Quickshell and the vendored Omarchy desktop shell with its Orthodox Daily plugin |
 | `podman` | Installs **rootless** Podman and exposes a Docker-compatible socket |
 | `rpmfusion` | Enables the RPM Fusion free and nonfree repositories |
 | `rust` | Installs Rust via rustup and keeps toolchains updated |
@@ -116,7 +119,30 @@ steam                                        ->  rpmfusion
 surface_dial                                 ->  workstation
 zen_browser_extensions, zen_browser_policies -> zen_browser
 wallpaper_randomizer                         -> workstation
+jetbrains_mono                               -> workstation
+hyprland                                     -> jetbrains_mono, wezterm
+omarchy_shell                                -> hyprland
 ```
+
+## Vendored Desktop Assets
+
+The Hyprland desktop is self-contained: the shell, its plugins, the `hypr-*`
+helper scripts and the companion configuration are committed under each role's
+`files/` directory rather than cloned at provision time. Nothing is fetched
+from GitHub while the playbooks run, so a build is reproducible and auditable
+from this repository alone.
+
+Provenance is recorded next to the assets, since all of it is third-party MIT
+code that keeps its original `LICENSE`:
+
+| Asset | Upstream |
+|-------|----------|
+| `roles/omarchy_shell/files/omarchy/` | [basecamp/omarchy](https://github.com/basecamp/omarchy) via [temu-omarchy](https://github.com/darthtrevino/temu-omarchy); see `files/omarchy/UPSTREAM` |
+| `roles/omarchy_shell/files/plugins/io.github.tyrichards.orthodox-daily/` | Ty Richards' Orthodox Daily plugin; see its `UPSTREAM` |
+| `roles/hyprland/files/` | [temu-omarchy](https://github.com/darthtrevino/temu-omarchy); see `files/UPSTREAM` |
+
+To pull in upstream changes, re-copy the relevant paths from the upstream
+commit and update the matching `UPSTREAM` file.
 
 ## Manual Steps
 
@@ -132,6 +158,18 @@ Provisioning cannot complete these, so the roles prompt for them instead.
   `voxtype record toggle` instead: press once to start dictating, again to
   stop. The binding is registered through KGlobalAccel's D-Bus API because
   `kglobalshortcutsrc` is owned and rewritten by `kwin_wayland`.
+- **Choosing the Hyprland session.** The `hyprland` and `omarchy_shell` roles
+  install Hyprland alongside the existing KDE Plasma session rather than
+  replacing it. Log out and pick **Hyprland** from the session menu in SDDM to
+  use it; nothing about the KDE session changes.
+- **Hyprland keyboard layout.** The ported configuration keeps upstream's
+  Dvorak layout. Override `hyprland_kb_variant` (and `hyprland_kb_layout`) if
+  you type on something else, otherwise the keybindings will land on the wrong
+  physical keys.
+- **Wallpapers.** hyprpaper shuffles `~/.wallpapers` every 15 minutes on its
+  own, so no timer is involved. The role seeds that directory from Hyprland's
+  stock wallpapers only when it is empty; drop your own images in and they are
+  picked up on the next cycle.
 
 ## Notes on the Comtrya Port
 

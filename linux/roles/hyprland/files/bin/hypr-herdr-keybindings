@@ -1,0 +1,196 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+config_file="${HERDR_CONFIG_PATH:-${XDG_CONFIG_HOME:-$HOME/.config}/herdr/config.toml}"
+[[ -f "$config_file" ]] || config_file=/dev/null
+
+print_only=false
+case "${1:-}" in
+    --print|-p)
+        print_only=true
+        ;;
+    "")
+        ;;
+    *)
+        printf 'Usage: %s [--print|-p]\n' "${0##*/}" >&2
+        exit 2
+        ;;
+esac
+
+# Herdr does not expose resolved bindings directly. Its default config lists
+# every action as commented TOML, so overlay the active config on that list.
+output_keybindings() {
+    herdr --default-config | awk -v config_file="$config_file" '
+function strip_comment(value,   i, ch, quote, out) {
+    quote = ""
+    out = ""
+
+    for (i = 1; i <= length(value); i++) {
+        ch = substr(value, i, 1)
+        if (quote == "" && (ch == "\"" || ch == "\047")) quote = ch
+        else if (ch == quote) quote = ""
+        if (ch == "#" && quote == "") break
+        out = out ch
+    }
+
+    return out
+}
+
+function without_quoted(value,   i, ch, quote, out) {
+    quote = ""
+    out = ""
+
+    for (i = 1; i <= length(value); i++) {
+        ch = substr(value, i, 1)
+        if (quote == "") {
+            if (ch == "\"" || ch == "\047") quote = ch
+            else out = out ch
+        } else if (ch == quote) {
+            quote = ""
+        }
+    }
+
+    return quote == "" ? out : "\001"
+}
+
+function is_binding_value(value,   rest) {
+    value = strip_comment(value)
+    sub(/^[[:space:]]+/, "", value)
+    sub(/[[:space:]]+$/, "", value)
+    if (value == "") return 0
+
+    rest = without_quoted(value)
+    return rest == "" || rest ~ /^\[[[:space:],]*\]$/
+}
+
+function key_text(key,   count, parts, i, text) {
+    count = split(key, parts, "+")
+    text = ""
+
+    for (i = 1; i <= count; i++) {
+        text = text (text == "" ? "" : " + ") toupper(parts[i])
+    }
+
+    return text
+}
+
+function combo_text(value,   i, ch, quote, part, text) {
+    value = strip_comment(value)
+    quote = ""
+    part = ""
+    text = ""
+
+    for (i = 1; i <= length(value); i++) {
+        ch = substr(value, i, 1)
+        if (quote == "") {
+            if (ch == "\"" || ch == "\047") {
+                quote = ch
+                part = ""
+            }
+            continue
+        }
+
+        if (ch == quote) {
+            quote = ""
+            if (part != "") text = text (text == "" ? "" : " / ") key_text(part)
+            continue
+        }
+
+        part = part ch
+    }
+
+    return text
+}
+
+function describe(action,   text) {
+    sub(/^navigate_/, "", action)
+    gsub(/_/, " ", action)
+    return toupper(substr(action, 1, 1)) substr(action, 2)
+}
+
+function remember(action) {
+    if (action in seen) return
+    seen[action] = 1
+    order[++count] = action
+}
+
+function bind(action, value,   combo) {
+    combo = combo_text(value)
+    if (combo == "") return
+    if (action ~ /^navigate_/) combo = "NAVIGATE + " combo
+    remember(action)
+    combos[action] = combo
+}
+
+FNR == NR {
+    line = $0
+    sub(/^[[:space:]]*#[[:space:]]*/, "", line)
+
+    if (line ~ /^\[\[keys\.command\]\]/) {
+        in_keys = 0
+        next
+    }
+    if (line ~ /^\[/) {
+        in_keys = (line ~ /^\[keys\]/)
+        next
+    }
+    if (!in_keys || line !~ /^[a-z_]+[[:space:]]*=/) next
+
+    action = line
+    sub(/[[:space:]]*=.*$/, "", action)
+    value = line
+    sub(/^[^=]*=[[:space:]]*/, "", value)
+    if (!is_binding_value(value)) next
+
+    remember(action)
+    bind(action, value)
+    next
+}
+
+{
+    if ($0 ~ /^\[\[keys\.command\]\]/) {
+        in_user_keys = 0
+        next
+    }
+    if ($0 ~ /^\[/) {
+        in_user_keys = ($0 ~ /^\[keys\]/)
+        next
+    }
+    if (!in_user_keys || $0 ~ /^[[:space:]]*#/ ||
+        $0 !~ /^[[:space:]]*[a-z_]+[[:space:]]*=/) next
+
+    line = $0
+    sub(/^[[:space:]]*/, "", line)
+    action = line
+    sub(/[[:space:]]*=.*$/, "", action)
+    value = line
+    sub(/^[^=]*=[[:space:]]*/, "", value)
+    if (!is_binding_value(value)) next
+
+    if (combo_text(value) == "") {
+        delete combos[action]
+        next
+    }
+
+    bind(action, value)
+}
+
+END {
+    if ("prefix" in combos) printf "%-32s  %s\n", "PREFIX", combos["prefix"]
+
+    for (i = 1; i <= count; i++) {
+        action = order[i]
+        if (action == "prefix" || !(action in combos)) continue
+        printf "%-32s  %s\n", combos[action], describe(action)
+    }
+}
+' - "$config_file"
+}
+
+if [[ "$print_only" == "true" ]]; then
+    output_keybindings
+else
+    output_keybindings |
+        rofi -dmenu -i -matching fuzzy -p "Herdr keybindings" -no-custom >/dev/null
+fi

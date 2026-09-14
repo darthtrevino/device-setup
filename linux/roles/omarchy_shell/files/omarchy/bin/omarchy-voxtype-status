@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+if ! command -v voxtype >/dev/null 2>&1; then
+    printf '%s\n' '{"alt":"","class":"idle","tooltip":""}'
+    exit 0
+fi
+
+exec voxtype status --follow --extended --format json
