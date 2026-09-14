@@ -1,6 +1,14 @@
 ---
-- name: Install Discord from RPM Fusion nonfree
+- name: Remove the Discord RPM package
   become: true
   ansible.builtin.dnf:
     name: discord
+    state: absent
+
+- name: Install Discord
+  become: true
+  community.general.flatpak:
+    name: "{{ discord_flatpak }}"
+    method: system
+    remote: "{{ flatpak_flathub_remote_name }}"
     state: present

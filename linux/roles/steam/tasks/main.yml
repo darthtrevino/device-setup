@@ -1,0 +1,6 @@
+---
+- name: Install Steam and device support
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ steam_packages }}"
+    state: present

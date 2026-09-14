@@ -60,7 +60,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `bitwarden` | Installs Bitwarden from Flathub |
 | `bottom` | Installs [bottom](https://github.com/ClementTsang/bottom) from the latest upstream release RPM |
 | `catppuccin_gnome_terminal` | Installs the Catppuccin GNOME Terminal profiles and defaults to Mocha |
-| `discord` | Installs Discord from RPM Fusion nonfree |
+| `discord` | Installs Discord from Flathub |
 | `dnf_automatic` | Applies package updates unattended on a daily timer |
 | `flatpak` | Installs Flatpak and enables the system-wide Flathub remote |
 | `git` | Installs Git and configures the user identity |
@@ -78,6 +78,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `sshd` | Enables and starts the OpenSSH server, and opens it in firewalld |
 | `spotify` | Installs Spotify from Flathub |
 | `starship` | Installs the [Starship](https://starship.rs) prompt and its configuration |
+| `steam` | Installs Steam and native controller-device support |
 | `task` | Installs the [Task](https://taskfile.dev) runner from Cloudsmith |
 | `tealdeer` | Installs tealdeer and primes the tldr cache |
 | `uv` | Installs Astral's Python package and project manager from Fedora |
@@ -98,8 +99,8 @@ correct on their own. Ansible de-duplicates shared dependencies within a run.
 starship, golang, rust, podman, zen_browser  ->  bashrcd
 nvm                                           ->  git, bashrcd
 starship, wezterm                            ->  nerd_fonts_hack
-discord                                      ->  rpmfusion
-bitwarden, spotify                           ->  flatpak
+bitwarden, discord, spotify                  ->  flatpak
+steam                                        ->  rpmfusion
 zen_browser_extensions, zen_browser_policies -> zen_browser
 wallpaper_randomizer                         -> workstation
 ```
