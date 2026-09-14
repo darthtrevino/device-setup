@@ -6,18 +6,18 @@
 #
 #   # requirements.yml
 #   collections:
-#     - name: https://github.com/daxpryce/ansible-playbooks.git
+#     - name: https://github.com/darthtrevino/ansible-playbooks.git
 #       type: git
 #       version: main
 #
-# Roles are then referenced by FQCN, e.g. daxpryce.workstation.starship, which
+# Roles are then referenced by FQCN, e.g. darthtrevino.workstation.starship, which
 # removes any chance of a name collision with a consuming repo's own roles.
 # The Comtrya-era apply.sh flat-merged two recipe trees and needed precedence
 # rules to resolve exactly that problem.
 #
 # Note: collections do NOT carry group_vars. That is why the shared variables
 # live in the workstation and zen carrier roles instead.
-namespace: daxpryce
+namespace: darthtrevino
 name: workstation
 version: 1.0.0
 readme: README.md
@@ -34,8 +34,8 @@ tags:
   - fedora
   - workstation
   - desktop
-repository: https://github.com/daxpryce/ansible-playbooks
-issues: https://github.com/daxpryce/ansible-playbooks/issues
+repository: https://github.com/darthtrevino/ansible-playbooks
+issues: https://github.com/darthtrevino/ansible-playbooks/issues
 dependencies: {}
 
 # Files that configure *this* repo as a control node; they are meaningless to a
