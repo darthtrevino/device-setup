@@ -1,0 +1,19 @@
+---
+# Entries use the Task Manager's own launcher syntax. "applications:" resolves a
+# desktop file from the XDG data dirs, which covers both RPM and Flatpak apps,
+# and "preferred://" defers to the configured default handler.
+kde_launchers_entries:
+  - applications:steam.desktop
+  - applications:com.spotify.Client.desktop
+  - applications:com.discordapp.Discord.desktop
+  - applications:com.bitwarden.desktop.desktop
+  - applications:microsoft-edge.desktop
+
+# Plasma ships two interchangeable Task Manager applets and either may be the
+# one on the panel, so both are matched.
+kde_launchers_widget_ids:
+  - org.kde.plasma.icontasks
+  - org.kde.plasma.taskmanager
+
+kde_launchers_packages:
+  - glib2

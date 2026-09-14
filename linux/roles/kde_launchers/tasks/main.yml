@@ -1,0 +1,27 @@
+---
+- name: Install Plasma scripting dependencies
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ kde_launchers_packages }}"
+    state: present
+
+- name: Render the Task Manager launcher script
+  ansible.builtin.set_fact:
+    kde_launchers_script: >-
+      {{ lookup('ansible.builtin.template', role_path + '/templates/pin-launchers.js.j2') }}
+
+- name: Pin the applications to the Task Manager
+  ansible.builtin.command:
+    argv:
+      - gdbus
+      - call
+      - --session
+      - --dest
+      - org.kde.plasmashell
+      - --object-path
+      - /PlasmaShell
+      - --method
+      - org.kde.PlasmaShell.evaluateScript
+      - "{{ kde_launchers_script }}"
+  register: kde_launchers_result
+  changed_when: "'changed' in kde_launchers_result.stdout"

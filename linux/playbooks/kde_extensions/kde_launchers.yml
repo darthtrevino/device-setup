@@ -1,0 +1,6 @@
+---
+- name: Pin applications to the KDE Task Manager
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - kde_launchers

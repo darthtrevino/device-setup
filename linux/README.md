@@ -68,8 +68,10 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `github_cli` | Installs GitHub CLI from Fedora's package repository |
 | `github_copilot_cli` | Installs the native GitHub Copilot CLI |
 | `golang` | Installs the latest Go toolchain into `/usr/local/go` |
+| `herdr` | Installs the [herdr](https://github.com/herdrdev/herdr) coding-agent runtime |
 | `jq` | Installs jq |
 | `just` | Installs the [just](https://github.com/casey/just) command runner |
+| `kde_launchers` | Pins Steam, Spotify, Discord, Bitwarden and Edge to the KDE Task Manager |
 | `kde_orthocal` | Installs the Orthocal Plasma widget immediately left of the clock |
 | `microsoft_edge` | Installs Microsoft Edge Stable, Bitwarden and uBlock Origin |
 | `nerd_fonts_hack` | Installs Hack Nerd Font and sets it as the desktop monospace font |
@@ -103,6 +105,8 @@ correct on their own. Ansible de-duplicates shared dependencies within a run.
 starship, golang, rust, podman, zen_browser  ->  bashrcd
 nvm                                           ->  git, bashrcd
 kde_orthocal                                  ->  git, workstation
+kde_launchers                                 ->  steam, spotify, discord, bitwarden, microsoft_edge
+herdr                                         ->  workstation
 starship, wezterm                            ->  nerd_fonts_hack
 bitwarden, discord, spotify                  ->  flatpak
 steam                                        ->  rpmfusion

@@ -19,6 +19,7 @@
     - git
     - github_cli
     - github_copilot_cli
+    - herdr
     - vim
     - jq
     - just
@@ -61,4 +62,5 @@
     - no_notifications
     - dark_mode
     - kde_orthocal
+    - kde_launchers
     - wallpaper_randomizer

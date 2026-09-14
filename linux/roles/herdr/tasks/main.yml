@@ -1,0 +1,24 @@
+---
+- name: Ensure the local binary directory exists
+  ansible.builtin.file:
+    path: "{{ herdr_install_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Read the currently installed herdr version
+  ansible.builtin.command:
+    cmd: "{{ herdr_binary }} --version"
+  register: herdr_installed
+  changed_when: false
+  check_mode: false
+  failed_when: false
+
+# get_url alone would never upgrade, because it leaves an existing destination
+# untouched; gating on the reported version makes a version bump take effect.
+- name: Install herdr
+  ansible.builtin.get_url:
+    url: "{{ herdr_release_url }}"
+    dest: "{{ herdr_binary }}"
+    mode: "0755"
+    force: true
+  when: herdr_version | regex_replace('^v', '') not in (herdr_installed.stdout | default(''))
