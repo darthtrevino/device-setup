@@ -63,12 +63,15 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `discord` | Installs Discord from Flathub |
 | `dnf_automatic` | Applies package updates unattended on a daily timer |
 | `flatpak` | Installs Flatpak and enables the system-wide Flathub remote |
+| `firefox` | Installs Firefox and force-installs Bitwarden and uBlock Origin |
 | `git` | Installs Git and configures the user identity |
 | `github_cli` | Installs GitHub CLI from Fedora's package repository |
 | `github_copilot_cli` | Installs the native GitHub Copilot CLI |
 | `golang` | Installs the latest Go toolchain into `/usr/local/go` |
 | `jq` | Installs jq |
 | `just` | Installs the [just](https://github.com/casey/just) command runner |
+| `kde_orthocal` | Installs the Orthocal Plasma widget immediately left of the clock |
+| `microsoft_edge` | Installs Microsoft Edge Stable, Bitwarden and uBlock Origin |
 | `nerd_fonts_hack` | Installs Hack Nerd Font and sets it as the desktop monospace font |
 | `no_notifications` | Disables GNOME event sounds |
 | `nvm` | Installs Node Version Manager and Bash integration |
@@ -79,6 +82,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `spotify` | Installs Spotify from Flathub |
 | `starship` | Installs the [Starship](https://starship.rs) prompt and its configuration |
 | `steam` | Installs Steam and native controller-device support |
+| `surface_dial` | Installs the Surface Dial volume controller and user service |
 | `task` | Installs the [Task](https://taskfile.dev) runner from Cloudsmith |
 | `tealdeer` | Installs tealdeer and primes the tldr cache |
 | `uv` | Installs Astral's Python package and project manager from Fedora |
@@ -98,9 +102,11 @@ correct on their own. Ansible de-duplicates shared dependencies within a run.
 ```
 starship, golang, rust, podman, zen_browser  ->  bashrcd
 nvm                                           ->  git, bashrcd
+kde_orthocal                                  ->  git, workstation
 starship, wezterm                            ->  nerd_fonts_hack
 bitwarden, discord, spotify                  ->  flatpak
 steam                                        ->  rpmfusion
+surface_dial                                 ->  workstation
 zen_browser_extensions, zen_browser_policies -> zen_browser
 wallpaper_randomizer                         -> workstation
 ```

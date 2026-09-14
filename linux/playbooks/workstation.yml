@@ -39,6 +39,9 @@
     # ── Containers ──
     - podman
 
+    # ── Hardware integration ──
+    - surface_dial
+
     # ── Desktop applications ──
     - wezterm
     - vscode
@@ -46,6 +49,8 @@
     - steam
     - bitwarden
     - spotify
+    - microsoft_edge
+    - firefox
     - zen_browser
     - zen_browser_extensions
     - zen_browser_policies
@@ -55,4 +60,5 @@
     - catppuccin_gnome_terminal
     - no_notifications
     - dark_mode
+    - kde_orthocal
     - wallpaper_randomizer

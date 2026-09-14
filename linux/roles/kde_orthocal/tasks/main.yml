@@ -1,0 +1,64 @@
+---
+- name: Install KDE Orthocal build dependencies
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ kde_orthocal_packages }}"
+    state: present
+
+- name: Ensure the local source directory exists
+  ansible.builtin.file:
+    path: "{{ kde_orthocal_source_dir | dirname }}"
+    state: directory
+    mode: "0755"
+
+- name: Download KDE Orthocal
+  ansible.builtin.git:
+    repo: "{{ kde_orthocal_repository }}"
+    dest: "{{ kde_orthocal_source_dir }}"
+    version: "{{ kde_orthocal_version }}"
+    update: true
+  register: kde_orthocal_source
+
+- name: Check whether KDE Orthocal is installed
+  ansible.builtin.command:
+    argv:
+      - kpackagetool6
+      - --type
+      - Plasma/Applet
+      - --show
+      - "{{ kde_orthocal_widget_id }}"
+  register: kde_orthocal_package
+  changed_when: false
+  check_mode: false
+  failed_when: false
+
+- name: Install KDE Orthocal
+  ansible.builtin.command:
+    cmd: "{{ kde_orthocal_source_dir }}/scripts/plasma-install.sh"
+  changed_when: true
+  when: kde_orthocal_source.changed or kde_orthocal_package.rc != 0
+  notify: Restart Plasma shell
+
+- name: Apply pending Plasma shell restart
+  ansible.builtin.meta: flush_handlers
+
+- name: Render the Orthocal panel placement script
+  ansible.builtin.set_fact:
+    kde_orthocal_panel_script: >-
+      {{ lookup('ansible.builtin.template', role_path + '/templates/place-widget.js.j2') }}
+
+- name: Place Orthocal immediately before the clock
+  ansible.builtin.command:
+    argv:
+      - gdbus
+      - call
+      - --session
+      - --dest
+      - org.kde.plasmashell
+      - --object-path
+      - /PlasmaShell
+      - --method
+      - org.kde.PlasmaShell.evaluateScript
+      - "{{ kde_orthocal_panel_script }}"
+  register: kde_orthocal_placement
+  changed_when: "'changed' in kde_orthocal_placement.stdout"

@@ -1,0 +1,25 @@
+---
+- name: Install Firefox
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ firefox_package }}"
+    state: present
+
+- name: Ensure the Firefox policy directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ firefox_policy_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install the Firefox extension policy
+  become: true
+  ansible.builtin.template:
+    src: policies.json.j2
+    dest: "{{ firefox_policy_dir }}/policies.json"
+    owner: root
+    group: root
+    mode: "0644"
+    validate: "python3 -c 'import json,sys; json.load(open(sys.argv[1]))' %s"

@@ -1,0 +1,6 @@
+---
+- name: Restart Plasma shell
+  ansible.builtin.systemd_service:
+    name: plasma-plasmashell.service
+    scope: user
+    state: restarted

@@ -1,0 +1,59 @@
+const orthocalType = {{ kde_orthocal_widget_id | to_json }};
+const clockType = {{ kde_orthocal_clock_widget_id | to_json }};
+
+let targetPanel = null;
+let clock = null;
+let orthocal = null;
+
+for (const panelId of panelIds) {
+    const panel = panelById(panelId);
+    if (!panel) {
+        continue;
+    }
+
+    for (const widgetId of panel.widgetIds) {
+        const widget = panel.widgetById(widgetId);
+        if (widget.type === clockType && !clock) {
+            targetPanel = panel;
+            clock = widget;
+        }
+        if (widget.type === orthocalType && !orthocal) {
+            orthocal = widget;
+        }
+    }
+}
+
+if (!targetPanel || !clock) {
+    throw new Error("No Plasma panel containing a digital clock was found");
+}
+
+let changed = false;
+if (!orthocal) {
+    orthocal = targetPanel.addWidget(orthocalType);
+    changed = true;
+} else if (!targetPanel.widgetIds.includes(orthocal.id)) {
+    targetPanel.addWidget(orthocal);
+    changed = true;
+}
+
+targetPanel.currentConfigGroup = ["General"];
+const currentOrder = targetPanel.readConfig("AppletOrder")
+    .split(";")
+    .filter(Boolean);
+const orthocalId = String(orthocal.id);
+const clockId = String(clock.id);
+const desiredOrder = currentOrder.filter((id) => id !== orthocalId);
+const clockIndex = desiredOrder.indexOf(clockId);
+
+if (clockIndex === -1) {
+    throw new Error("The digital clock is missing from the panel applet order");
+}
+
+desiredOrder.splice(clockIndex, 0, orthocalId);
+if (desiredOrder.join(";") !== currentOrder.join(";")) {
+    targetPanel.writeConfig("AppletOrder", desiredOrder.join(";"));
+    targetPanel.reloadConfig();
+    changed = true;
+}
+
+print(changed ? "changed" : "ok");

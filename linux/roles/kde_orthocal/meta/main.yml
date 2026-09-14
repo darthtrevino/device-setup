@@ -1,0 +1,5 @@
+---
+dependencies:
+  # Supplies workstation_home and ensures the git module has its executable.
+  - role: workstation
+  - role: git

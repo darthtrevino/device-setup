@@ -1,0 +1,16 @@
+---
+# Use Microsoft's repository so dnf keeps Edge current with the rest of the
+# workstation instead of installing a one-off RPM.
+microsoft_edge_gpg_key_url: https://packages.microsoft.com/keys/microsoft.asc
+microsoft_edge_repo_baseurl: https://packages.microsoft.com/yumrepos/edge
+microsoft_edge_package: microsoft-edge-stable
+microsoft_edge_policy_dir: /etc/opt/edge/policies/managed
+microsoft_edge_extension_update_url: https://edge.microsoft.com/extensionwebstorebase/v1/crx
+
+# IDs come from the Microsoft Edge Add-ons store, not the Chrome Web Store;
+# the same extension carries a different ID in each catalogue.
+microsoft_edge_extensions:
+  - name: Bitwarden
+    id: jbkfoedolllekgbhcbcoahefnbanhhlh
+  - name: uBlock Origin
+    id: odfafepnkmbhccpbejgmiehpchacaeak

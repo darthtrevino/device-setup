@@ -1,0 +1,10 @@
+{
+  "ExtensionSettings": {
+{% for ext in microsoft_edge_extensions %}
+    {{ ext.id | to_json }}: {
+      "installation_mode": "force_installed",
+      "update_url": {{ microsoft_edge_extension_update_url | to_json }}
+    }{{ "," if not loop.last else "" }}
+{% endfor %}
+  }
+}

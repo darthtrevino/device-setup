@@ -1,0 +1,6 @@
+---
+- name: Install Microsoft Edge
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - microsoft_edge

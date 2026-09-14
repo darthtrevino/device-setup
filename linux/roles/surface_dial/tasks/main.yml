@@ -1,0 +1,47 @@
+---
+- name: Install Surface Dial runtime dependencies
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ surface_dial_packages }}"
+    state: present
+
+- name: Ensure Surface Dial installation directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ workstation_local_bin }}"
+    - "{{ surface_dial_systemd_dir }}"
+
+- name: Install the Surface Dial daemon
+  ansible.builtin.get_url:
+    url: "{{ surface_dial_source_base_url }}/src/surface_dial.py"
+    dest: "{{ surface_dial_script_path }}"
+    mode: "0755"
+  notify: Restart Surface Dial service
+
+- name: Install the Surface Dial user service
+  ansible.builtin.get_url:
+    url: "{{ surface_dial_source_base_url }}/systemd/surface-dial.service"
+    dest: "{{ surface_dial_systemd_dir }}/{{ surface_dial_service_name }}"
+    mode: "0644"
+  notify: Restart Surface Dial service
+
+- name: Install the Surface Dial device access rule
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ surface_dial_source_base_url }}/udev/70-surface-dial.rules"
+    dest: "{{ surface_dial_udev_rule_path }}"
+    mode: "0644"
+  notify:
+    - Reload Surface Dial device access
+    - Restart Surface Dial service
+
+- name: Enable the Surface Dial service
+  ansible.builtin.systemd_service:
+    name: "{{ surface_dial_service_name }}"
+    scope: user
+    enabled: true
+    state: started
+    daemon_reload: true

@@ -1,0 +1,6 @@
+---
+- name: Install KDE Orthocal
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - kde_orthocal
