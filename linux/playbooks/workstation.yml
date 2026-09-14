@@ -42,6 +42,7 @@
 
     # ── Hardware integration ──
     - surface_dial
+    - gaze
 
     # ── Desktop applications ──
     - wezterm

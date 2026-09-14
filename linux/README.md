@@ -64,6 +64,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `dnf_automatic` | Applies package updates unattended on a daily timer |
 | `flatpak` | Installs Flatpak and enables the system-wide Flathub remote |
 | `firefox` | Installs Firefox and force-installs Bitwarden and uBlock Origin |
+| `gaze` | Installs [Gaze](https://github.com/GunduLabs/gaze) face authentication for the KDE lock screen, sudo and polkit |
 | `git` | Installs Git and configures the user identity |
 | `github_cli` | Installs GitHub CLI from Fedora's package repository |
 | `github_copilot_cli` | Installs the native GitHub Copilot CLI |
@@ -114,6 +115,16 @@ surface_dial                                 ->  workstation
 zen_browser_extensions, zen_browser_policies -> zen_browser
 wallpaper_randomizer                         -> workstation
 ```
+
+## Manual Steps
+
+Provisioning cannot complete these, so the roles prompt for them instead.
+
+- **Gaze face enrolment.** Enrolment drives the webcam from an interactive
+  prompt, so the `gaze` role only installs and wires up face authentication.
+  Run `gaze add-face` (or use the Gaze GUI) to enrol a face; the playbook
+  prints a reminder whenever the current user has none. Until a face exists
+  every Gaze prompt falls through to the password stack.
 
 ## Notes on the Comtrya Port
 

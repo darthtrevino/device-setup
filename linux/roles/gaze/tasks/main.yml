@@ -1,0 +1,115 @@
+---
+- name: Add the Gundu Labs signing key
+  become: true
+  ansible.builtin.rpm_key:
+    key: "{{ gaze_gpg_key_url }}"
+    state: present
+
+- name: Add the Gundu Labs repository
+  become: true
+  ansible.builtin.yum_repository:
+    name: gundulabs
+    description: Gundu Labs
+    baseurl: "{{ gaze_repo_baseurl }}"
+    gpgkey: "{{ gaze_gpg_key_url }}"
+    gpgcheck: true
+    repo_gpgcheck: true
+
+- name: Install Gaze
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ gaze_packages }}"
+    state: present
+
+- name: Enable the Gaze daemon
+  become: true
+  ansible.builtin.systemd_service:
+    name: gazed.service
+    enabled: true
+    state: started
+
+- name: Read the Gaze KDE integration status
+  ansible.builtin.command:
+    cmd: gaze-kde-pam status
+  register: gaze_kde_status
+  changed_when: false
+  check_mode: false
+
+# gaze-kde-pam owns its own block in the KDE PAM files, so let it place the
+# module rather than editing that stack by hand.
+- name: Enable face authentication on the KDE lock screen
+  become: true
+  ansible.builtin.command:
+    cmd: gaze-kde-pam enable
+  when: "'lock screen: enabled' not in gaze_kde_status.stdout"
+  changed_when: true
+
+- name: Enable face authentication in the KDE login greeter
+  become: true
+  ansible.builtin.command:
+    cmd: gaze-kde-pam enable-login
+  when:
+    - gaze_enable_login
+    - "'login greeter: enabled' not in gaze_kde_status.stdout"
+  changed_when: true
+
+- name: Enable face authentication for sudo
+  become: true
+  community.general.pamd:
+    name: sudo
+    type: auth
+    control: include
+    module_path: system-auth
+    new_type: auth
+    new_control: sufficient
+    new_module_path: pam_gaze.so
+    state: before
+  when: gaze_enable_sudo
+
+- name: Enable face authentication for polkit
+  when: gaze_enable_polkit
+  block:
+    # polkit ships its stack in /usr/lib/pam.d, and PAM prefers /etc/pam.d when
+    # both exist; copy the vendor file first so the edit has somewhere to land.
+    - name: Copy the vendor polkit PAM stack into /etc
+      become: true
+      ansible.builtin.copy:
+        src: /usr/lib/pam.d/polkit-1
+        dest: /etc/pam.d/polkit-1
+        remote_src: true
+        owner: root
+        group: root
+        mode: "0644"
+        force: false
+
+    - name: Add Gaze to the polkit PAM stack
+      become: true
+      community.general.pamd:
+        name: polkit-1
+        type: auth
+        control: include
+        module_path: system-auth
+        new_type: auth
+        new_control: sufficient
+        new_module_path: pam_gaze.so
+        state: before
+      notify: Restart polkit
+
+- name: Check whether a face is enrolled
+  ansible.builtin.command:
+    cmd: gaze list-faces
+  register: gaze_enrolled_faces
+  changed_when: false
+  check_mode: false
+  failed_when: false
+
+# Enrolment drives the webcam from an interactive prompt, so it cannot be
+# automated. The match deliberately fails toward showing the reminder: a
+# needless note is harmless, silently leaving face auth unusable is not.
+- name: Remind the user to enrol a face
+  ansible.builtin.debug:
+    msg:
+      - "Gaze is installed, but no face is enrolled for {{ ansible_user_id }}."
+      - "Run `gaze add-face` to enrol one, or use the Gaze GUI."
+      - "Until then every Gaze prompt falls through to the password stack."
+  when: gaze_enrolled_faces.stdout is not search('^\s*[1-9][0-9]* face')

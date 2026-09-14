@@ -1,0 +1,18 @@
+---
+# Gundu Labs publishes a signed Fedora repository, so dnf upgrades Gaze along
+# with everything else instead of it drifting behind a one-off RPM.
+gaze_gpg_key_url: https://packages.gundulabs.com/keys/gundulabs-repo.asc
+gaze_repo_baseurl: https://packages.gundulabs.com/rpm/fedora/$releasever/$basearch
+gaze_packages:
+  - gaze
+  - gaze-gui
+  - gaze-kde
+
+# pam_gaze is wired in as "sufficient", so a failed or absent face match falls
+# through to the normal password stack rather than locking the account out.
+gaze_enable_sudo: true
+gaze_enable_polkit: true
+
+# The login greeter is left alone by default: it runs before the user session,
+# where a camera failure is far more disruptive than at a sudo prompt.
+gaze_enable_login: false
