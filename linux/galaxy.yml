@@ -23,6 +23,7 @@ version: 1.0.0
 readme: README.md
 authors:
   - Dax Pryce
+  - Chris Trevino
 description: >-
   Ansible roles for provisioning a Fedora workstation: shell tooling, language
   toolchains, rootless Podman, fonts, and Zen Browser with enterprise policy.
