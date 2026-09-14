@@ -12,6 +12,11 @@ hyprland_minimum_version: 0.56.0
 # already provisions wezterm, so the terminal is a variable rather than a fork
 # of the whole config.
 hyprland_terminal: wezterm
+
+# Scratchpad launcher command, kept separate from hyprland_terminal because it
+# also sets the window class, and the flag for that is terminal-specific
+# (wezterm needs `start --class`, kitty takes `--class` directly).
+hyprland_dropdown_command: "wezterm start --class dropdown-terminal"
 hyprland_file_manager: dolphin
 hyprland_menu: rofi -show drun
 
@@ -30,7 +35,6 @@ hyprland_wallpaper_dir: "{{ workstation_home }}/.wallpapers"
 # (hypr-audio-output-select, hypr-network-audio-safe, hypr-asahi-audio-ensure)
 # are deliberately excluded: this role does not manage audio.
 hyprland_helpers:
-  - hypr-dropdown-start
   - hypr-emoji-picker
   - hypr-herdr-keybindings
   - hypr-keybindings

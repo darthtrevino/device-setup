@@ -127,3 +127,11 @@
     dest: "{{ workstation_local_bin }}/{{ item }}"
     mode: "0755"
   loop: "{{ hyprland_helpers }}"
+
+# Templated rather than copied because the scratchpad launcher has to name the
+# terminal, and hyprland_terminal is configurable.
+- name: Install the Hyprland scratchpad launcher
+  ansible.builtin.template:
+    src: hypr-dropdown-start.j2
+    dest: "{{ workstation_local_bin }}/hypr-dropdown-start"
+    mode: "0755"
