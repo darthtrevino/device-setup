@@ -8,6 +8,7 @@
   roles:
     # ── Repositories and shell plumbing ──
     - rpmfusion
+    - flatpak
     - bashrcd
 
     # ── System maintenance ──
@@ -32,6 +33,8 @@
     # ── Language toolchains ──
     - golang
     - rust
+    - uv
+    - nvm
 
     # ── Containers ──
     - podman
@@ -40,6 +43,8 @@
     - wezterm
     - vscode
     - discord
+    - bitwarden
+    - spotify
     - zen_browser
     - zen_browser_extensions
     - zen_browser_policies

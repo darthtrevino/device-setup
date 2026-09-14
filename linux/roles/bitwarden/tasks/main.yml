@@ -1,0 +1,8 @@
+---
+- name: Install Bitwarden
+  become: true
+  community.general.flatpak:
+    name: "{{ bitwarden_flatpak }}"
+    method: system
+    remote: "{{ flatpak_flathub_remote_name }}"
+    state: present

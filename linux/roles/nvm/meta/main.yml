@@ -1,0 +1,7 @@
+---
+dependencies:
+  # Supplies workstation_home and workstation_bashrcd.
+  - role: workstation
+  - role: bashrcd
+  # The git module needs Git before it can clone NVM.
+  - role: git

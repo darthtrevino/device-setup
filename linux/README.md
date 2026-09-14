@@ -57,10 +57,12 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | Role | Description |
 |------|-------------|
 | `bashrcd` | Ensures `~/.bashrc.d` exists and is sourced by `~/.bashrc` |
+| `bitwarden` | Installs Bitwarden from Flathub |
 | `bottom` | Installs [bottom](https://github.com/ClementTsang/bottom) from the latest upstream release RPM |
 | `catppuccin_gnome_terminal` | Installs the Catppuccin GNOME Terminal profiles and defaults to Mocha |
 | `discord` | Installs Discord from RPM Fusion nonfree |
 | `dnf_automatic` | Applies package updates unattended on a daily timer |
+| `flatpak` | Installs Flatpak and enables the system-wide Flathub remote |
 | `git` | Installs Git and configures the user identity |
 | `github_cli` | Installs GitHub CLI from Fedora's package repository |
 | `github_copilot_cli` | Installs the native GitHub Copilot CLI |
@@ -69,13 +71,16 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `just` | Installs the [just](https://github.com/casey/just) command runner |
 | `nerd_fonts_hack` | Installs Hack Nerd Font and sets it as the desktop monospace font |
 | `no_notifications` | Disables GNOME event sounds |
+| `nvm` | Installs Node Version Manager and Bash integration |
 | `podman` | Installs **rootless** Podman and exposes a Docker-compatible socket |
 | `rpmfusion` | Enables the RPM Fusion free and nonfree repositories |
 | `rust` | Installs Rust via rustup and keeps toolchains updated |
 | `sshd` | Enables and starts the OpenSSH server, and opens it in firewalld |
+| `spotify` | Installs Spotify from Flathub |
 | `starship` | Installs the [Starship](https://starship.rs) prompt and its configuration |
 | `task` | Installs the [Task](https://taskfile.dev) runner from Cloudsmith |
 | `tealdeer` | Installs tealdeer and primes the tldr cache |
+| `uv` | Installs Astral's Python package and project manager from Fedora |
 | `vim` | Installs Vim (`vim-enhanced`) |
 | `vscode` | Installs Visual Studio Code from Microsoft's dnf repository |
 | `wallpaper_randomizer` | Selects a random KDE wallpaper at startup and every 15 minutes |
@@ -91,9 +96,11 @@ correct on their own. Ansible de-duplicates shared dependencies within a run.
 
 ```
 starship, golang, rust, podman, zen_browser  ->  bashrcd
+nvm                                           ->  git, bashrcd
 starship, wezterm                            ->  nerd_fonts_hack
 discord                                      ->  rpmfusion
-zen_browser_extensions, zen_browser_policies ->  zen_browser
+bitwarden, spotify                           ->  flatpak
+zen_browser_extensions, zen_browser_policies -> zen_browser
 wallpaper_randomizer                         -> workstation
 ```
 

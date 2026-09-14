@@ -1,0 +1,8 @@
+---
+- name: Install Spotify
+  become: true
+  community.general.flatpak:
+    name: "{{ spotify_flatpak }}"
+    method: system
+    remote: "{{ flatpak_flathub_remote_name }}"
+    state: present
