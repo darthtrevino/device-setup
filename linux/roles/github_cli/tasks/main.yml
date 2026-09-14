@@ -1,0 +1,6 @@
+---
+- name: Install GitHub CLI
+  become: true
+  ansible.builtin.dnf:
+    name: gh
+    state: present

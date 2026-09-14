@@ -16,6 +16,8 @@
 
     # ── Command line tooling ──
     - git
+    - github_cli
+    - github_copilot_cli
     - vim
     - jq
     - just
@@ -47,3 +49,4 @@
     - catppuccin_gnome_terminal
     - no_notifications
     - dark_mode
+    - wallpaper_randomizer

@@ -1,0 +1,39 @@
+#!/usr/bin/bash
+
+set -euo pipefail
+
+wallpaper_dir={{ wallpaper_randomizer_directory | quote }}
+{% raw %}
+state_dir="${XDG_STATE_HOME:-${HOME}/.local/state}"
+state_file="${state_dir}/random-kde-wallpaper.last"
+
+mapfile -d '' wallpapers < <(
+    find "${wallpaper_dir}" -maxdepth 1 -type f \
+        \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \
+        -o -iname '*.webp' -o -iname '*.bmp' -o -iname '*.svg' \
+        -o -iname '*.avif' \) -print0
+)
+
+if (( ${#wallpapers[@]} == 0 )); then
+    echo "No supported images found in ${wallpaper_dir}" >&2
+    exit 1
+fi
+
+last_wallpaper=""
+if [[ -r "${state_file}" ]]; then
+    IFS= read -r last_wallpaper < "${state_file}"
+fi
+
+candidates=()
+for wallpaper in "${wallpapers[@]}"; do
+    if (( ${#wallpapers[@]} == 1 )) || [[ "${wallpaper}" != "${last_wallpaper}" ]]; then
+        candidates+=("${wallpaper}")
+    fi
+done
+
+wallpaper="${candidates[RANDOM % ${#candidates[@]}]}"
+/usr/bin/plasma-apply-wallpaperimage --fill-mode preserveAspectCrop "${wallpaper}"
+
+mkdir -p "${state_dir}"
+printf '%s\n' "${wallpaper}" > "${state_file}"
+{% endraw %}

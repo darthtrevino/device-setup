@@ -4,3 +4,17 @@
   ansible.builtin.dnf:
     name: git
     state: present
+
+- name: Configure the Git user identity
+  community.general.git_config:
+    name: "{{ git_config_entry.name }}"
+    scope: global
+    value: "{{ git_config_entry.value }}"
+  loop:
+    - name: user.name
+      value: "{{ git_user_name }}"
+    - name: user.email
+      value: "{{ git_user_email }}"
+  loop_control:
+    loop_var: git_config_entry
+    label: "{{ git_config_entry.name }}"

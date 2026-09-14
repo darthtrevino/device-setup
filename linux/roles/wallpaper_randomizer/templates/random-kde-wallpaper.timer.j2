@@ -1,0 +1,12 @@
+[Unit]
+Description=Rotate the KDE wallpaper every {{ wallpaper_randomizer_interval }}
+
+[Timer]
+OnStartupSec={{ wallpaper_randomizer_startup_delay }}
+OnUnitActiveSec={{ wallpaper_randomizer_interval }}
+AccuracySec={{ wallpaper_randomizer_accuracy }}
+Persistent=true
+Unit={{ wallpaper_randomizer_unit_name }}.service
+
+[Install]
+WantedBy=timers.target

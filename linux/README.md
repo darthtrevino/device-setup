@@ -21,7 +21,7 @@ sudo ./bootstrap.sh
 ansible-playbook playbooks/workstation.yml -K
 
 # Or run a single role
-ansible-playbook playbooks/podman.yml -K
+ansible-playbook playbooks/development/podman.yml -K
 
 # Preview without changing anything
 ansible-playbook playbooks/workstation.yml -K --check --diff
@@ -33,12 +33,24 @@ ansible-playbook playbooks/workstation.yml -K --check --diff
 ansible.cfg          # inventory, roles_path, output formatting
 bootstrap.sh         # installs ansible + collections on a fresh machine
 inventory.ini        # [workstations] -> localhost, connection=local
-group_vars/all/      # user paths (main.yml) and Zen Browser config (zen.yml)
-playbooks/           # workstation.yml (everything) + one per role
+playbooks/           # workstation.yml + directed playbooks grouped by function
 roles/<role>/        # defaults/ files/ handlers/ meta/ tasks/ templates/
 ```
 
 Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
+
+### Playbook Areas
+
+| Directory | Purpose |
+|-----------|---------|
+| `applications/` | Desktop applications |
+| `browser_configuration/` | Browser installation, extensions, and policies |
+| `development/` | Source control, language toolchains, containers, and development tools |
+| `environment/` | System repositories, maintenance, access, fonts, and desktop behavior |
+| `kde_extensions/` | KDE-specific desktop automation |
+| `shell_utilities/` | Shell initialization and prompt configuration |
+| `terminal_emulators/` | Terminal applications and their configuration |
+| `utilities/` | General command-line utilities |
 
 ## Roles
 
@@ -49,7 +61,9 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `catppuccin_gnome_terminal` | Installs the Catppuccin GNOME Terminal profiles and defaults to Mocha |
 | `discord` | Installs Discord from RPM Fusion nonfree |
 | `dnf_automatic` | Applies package updates unattended on a daily timer |
-| `git` | Installs Git |
+| `git` | Installs Git and configures the user identity |
+| `github_cli` | Installs GitHub CLI from Fedora's package repository |
+| `github_copilot_cli` | Installs the native GitHub Copilot CLI |
 | `golang` | Installs the latest Go toolchain into `/usr/local/go` |
 | `jq` | Installs jq |
 | `just` | Installs the [just](https://github.com/casey/just) command runner |
@@ -64,6 +78,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `tealdeer` | Installs tealdeer and primes the tldr cache |
 | `vim` | Installs Vim (`vim-enhanced`) |
 | `vscode` | Installs Visual Studio Code from Microsoft's dnf repository |
+| `wallpaper_randomizer` | Selects a random KDE wallpaper at startup and every 15 minutes |
 | `wezterm` | Installs [WezTerm](https://wezterm.org) and its Lua configuration |
 | `zen_browser` | Installs [Zen Browser](https://zen-browser.app) to `/opt/zen` |
 | `zen_browser_extensions` | Downloads extension XPIs into the Zen install |
@@ -79,6 +94,7 @@ starship, golang, rust, podman, zen_browser  ->  bashrcd
 starship, wezterm                            ->  nerd_fonts_hack
 discord                                      ->  rpmfusion
 zen_browser_extensions, zen_browser_policies ->  zen_browser
+wallpaper_randomizer                         -> workstation
 ```
 
 ## Notes on the Comtrya Port

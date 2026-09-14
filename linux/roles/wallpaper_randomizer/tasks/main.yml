@@ -1,0 +1,50 @@
+---
+- name: Install the KDE wallpaper tooling
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ wallpaper_randomizer_package }}"
+    state: present
+
+- name: Ensure wallpaper randomizer directories exist
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    mode: "{{ item.mode }}"
+  loop:
+    - path: "{{ wallpaper_randomizer_directory }}"
+      mode: "0755"
+    - path: "{{ workstation_local_bin }}"
+      mode: "0755"
+    - path: "{{ wallpaper_randomizer_systemd_dir }}"
+      mode: "0755"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Install the wallpaper randomizer script
+  ansible.builtin.template:
+    src: random-kde-wallpaper.j2
+    dest: "{{ wallpaper_randomizer_script_path }}"
+    mode: "0755"
+  notify: Restart wallpaper randomizer timer
+
+- name: Install the wallpaper randomizer service
+  ansible.builtin.template:
+    src: random-kde-wallpaper.service.j2
+    dest: "{{ wallpaper_randomizer_systemd_dir }}/{{ wallpaper_randomizer_unit_name }}.service"
+    mode: "0644"
+  notify: Restart wallpaper randomizer timer
+
+- name: Install the wallpaper randomizer timer
+  ansible.builtin.template:
+    src: random-kde-wallpaper.timer.j2
+    dest: "{{ wallpaper_randomizer_systemd_dir }}/{{ wallpaper_randomizer_unit_name }}.timer"
+    mode: "0644"
+  notify: Restart wallpaper randomizer timer
+
+- name: Enable the wallpaper randomizer timer
+  ansible.builtin.systemd_service:
+    name: "{{ wallpaper_randomizer_unit_name }}.timer"
+    scope: user
+    enabled: true
+    state: started
+    daemon_reload: true

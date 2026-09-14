@@ -1,0 +1,30 @@
+---
+# GitHub does not publish a Fedora package for Copilot CLI, so use its
+# checksum-verifying native installer rather than adding Node.js for npm.
+- name: Check whether GitHub Copilot CLI is installed
+  ansible.builtin.stat:
+    path: "{{ github_copilot_cli_binary }}"
+  register: github_copilot_cli_binary_state
+  changed_when: false
+  check_mode: false
+
+- name: Install GitHub Copilot CLI
+  when: not github_copilot_cli_binary_state.stat.exists
+  block:
+    - name: Download the GitHub Copilot CLI installer
+      ansible.builtin.get_url:
+        url: https://gh.io/copilot-install
+        dest: /tmp/github-copilot-cli-install.sh
+        mode: "0755"
+
+    - name: Run the GitHub Copilot CLI installer
+      ansible.builtin.command:
+        cmd: /tmp/github-copilot-cli-install.sh
+        creates: "{{ github_copilot_cli_binary }}"
+      environment:
+        PREFIX: "{{ github_copilot_cli_prefix }}"
+  always:
+    - name: Remove the GitHub Copilot CLI installer
+      ansible.builtin.file:
+        path: /tmp/github-copilot-cli-install.sh
+        state: absent

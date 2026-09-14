@@ -1,0 +1,6 @@
+---
+- name: Install the wallpaper randomizer
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - wallpaper_randomizer

@@ -21,12 +21,13 @@ ansible.cfg          # inventory, roles_path, output formatting
 bootstrap.sh         # installs ansible-core/ansible-lint/collections
 inventory.ini        # [workstations] -> localhost ansible_connection=local
 group_vars/all/      # shared variables
-playbooks/           # workstation.yml + one playbook per role
+playbooks/           # workstation.yml + functional subdirectories
 roles/<role>/        # defaults/ files/ handlers/ meta/ tasks/ templates/
 ```
 
-Every role gets a matching single-role playbook in `playbooks/`, and is added
-to `playbooks/workstation.yml` in the correct order.
+Every role gets a matching single-role playbook in the appropriate functional
+subdirectory under `playbooks/`, and is added to `playbooks/workstation.yml`
+in the correct order.
 
 ## Conventions
 
@@ -85,6 +86,6 @@ or a deliberate deviation from the obvious approach drove the implementation.
 
 ```bash
 ansible-lint                                     # must stay clean (production profile)
-ansible-playbook --syntax-check playbooks/<p>.yml
-ansible-playbook playbooks/<p>.yml -K --check --diff
+ansible-playbook --syntax-check playbooks/<area>/<p>.yml
+ansible-playbook playbooks/<area>/<p>.yml -K --check --diff
 ```

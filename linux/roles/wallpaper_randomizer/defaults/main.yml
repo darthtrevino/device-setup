@@ -1,0 +1,9 @@
+---
+wallpaper_randomizer_package: plasma-workspace
+wallpaper_randomizer_directory: "{{ workstation_home }}/Wallpapers"
+wallpaper_randomizer_interval: 15min
+wallpaper_randomizer_startup_delay: 10s
+wallpaper_randomizer_accuracy: 10s
+wallpaper_randomizer_unit_name: random-kde-wallpaper
+wallpaper_randomizer_script_path: "{{ workstation_local_bin }}/random-kde-wallpaper"
+wallpaper_randomizer_systemd_dir: "{{ workstation_home }}/.config/systemd/user"

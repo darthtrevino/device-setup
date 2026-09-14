@@ -56,4 +56,4 @@ ansible --version
 echo
 echo "Next: run the whole workstation build, or a directed role, e.g.:"
 echo "  ansible-playbook playbooks/workstation.yml -K"
-echo "  ansible-playbook playbooks/docker.yml -K"
+echo "  ansible-playbook playbooks/development/podman.yml -K"
