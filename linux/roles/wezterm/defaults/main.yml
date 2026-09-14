@@ -20,3 +20,15 @@ wezterm_package: wezterm
 # left in the home directory.
 wezterm_config_dir: "{{ workstation_config_dir }}/wezterm"
 wezterm_config_path: "{{ wezterm_config_dir }}/wezterm.lua"
+
+# Translucent background. Compositing is required, which Plasma on Wayland and
+# Hyprland both provide; without it WezTerm just renders opaque.
+wezterm_background_opacity: 0.8
+
+# Attaching to a remote WezTerm multiplexer is opt-in. Leaving the host empty
+# emits no domain at all, so the config stays valid on a machine that has no
+# such peer -- a declared but unreachable domain would otherwise surface as a
+# connection error every time the domain list is opened.
+wezterm_mux_host: ""
+wezterm_mux_user: "{{ ansible_user_id }}"
+wezterm_mux_name: "{{ wezterm_mux_host }}"

@@ -32,8 +32,8 @@
 
 # WezTerm watches this file and reloads on save, so no restart is needed.
 - name: Install the WezTerm configuration
-  ansible.builtin.copy:
-    src: wezterm.lua
+  ansible.builtin.template:
+    src: wezterm.lua.j2
     dest: "{{ wezterm_config_path }}"
     mode: "0644"
     backup: true

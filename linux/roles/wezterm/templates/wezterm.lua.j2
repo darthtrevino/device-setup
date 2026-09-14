@@ -9,6 +9,11 @@ config.window_frame = {
   font_size = 10.0,
 }
 
+-- Only the background is translucent; text stays fully opaque so it never
+-- picks up whatever is behind the window.
+config.window_background_opacity = {{ wezterm_background_opacity }}
+config.text_background_opacity = 1.0
+
 config.window_padding = {
   left = 4,
   right = 4,
@@ -16,17 +21,25 @@ config.window_padding = {
   bottom = 4,
 }
 
--- Attach to the live GUI mux on the office machine (ghostwind).
--- Auto-detects the newest gui-sock-<pid> so it survives GUI restarts.
+{% if wezterm_mux_host %}
+-- Attach to the live GUI mux on {{ wezterm_mux_host }}, so a local tab renders
+-- the same session someone sitting at that machine sees.
+--
+-- proxy_command replaces the usual local socket with a stdio pipe: ssh -T
+-- (no pty, which would corrupt the binary mux protocol) runs `wezterm cli
+-- proxy` on the far end. The GUI's socket name embeds its pid, so the newest
+-- gui-sock-* is selected at connect time rather than pinned, and the runtime
+-- directory is resolved remotely instead of assuming a uid.
 config.unix_domains = {
   {
-    name = 'ghostwind',
+    name = '{{ wezterm_mux_name }}',
     proxy_command = {
-      'ssh', '-T', 'dax@ghostwind',
-      'ss=$(ls -t /run/user/1000/wezterm/gui-sock-* 2>/dev/null | head -1); exec env WEZTERM_UNIX_SOCKET="$ss" wezterm cli proxy',
+      'ssh', '-T', '{{ wezterm_mux_user }}@{{ wezterm_mux_host }}',
+      'rd="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"; ss=$(ls -t "$rd"/wezterm/gui-sock-* 2>/dev/null | head -1); exec env WEZTERM_UNIX_SOCKET="$ss" wezterm cli proxy',
     },
   },
 }
+{% endif %}
 
 config.leader = { key = ';', mods = 'CTRL', timeout_milliseconds = 2000 }
 
@@ -60,8 +73,10 @@ config.keys = {
   -- Close pane
   { key = 'x', mods = 'LEADER', action = act.CloseCurrentPane { confirm = true } },
 
-  -- Attach to the office (ghostwind) mux session
-  { key = 'g', mods = 'LEADER', action = act.AttachDomain 'ghostwind' },
+{% if wezterm_mux_host %}
+  -- Attach to the {{ wezterm_mux_name }} mux session
+  { key = 'g', mods = 'LEADER', action = act.AttachDomain '{{ wezterm_mux_name }}' },
+{% endif %}
 }
 
 return config

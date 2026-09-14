@@ -209,6 +209,36 @@ path *before* `~/.wezterm.lua`, so an old dotfile in `$HOME` cannot shadow it.
 WezTerm watches the file and reloads on save, so no restart is needed after the
 role updates it.
 
+The window background is translucent (`wezterm_background_opacity`, default
+`0.8`); text is held at full opacity so it never picks up whatever is behind the
+window. This needs a compositor, which Plasma on Wayland and Hyprland both
+provide — without one, WezTerm simply renders opaque.
+
+### Remote Multiplexer Domain
+
+The role can declare a WezTerm multiplexer domain that attaches to the *live GUI
+session* on another machine, so a local tab renders the same panes someone
+sitting at that machine sees, and they survive a local restart. It is off by
+default; set `wezterm_mux_host` to enable it:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `wezterm_mux_host` | `""` (disabled) | Host to attach to |
+| `wezterm_mux_user` | current user | Account to SSH as |
+| `wezterm_mux_name` | the host name | Domain name used by `wezterm connect` |
+
+Connect with `wezterm connect <name>`, or press `LEADER+g` to attach from a
+running window. Neither the domain nor that keybinding is emitted when no host
+is set, because a declared but unreachable domain surfaces as a connection error
+every time the domain list is opened.
+
+It works by handing the domain a `proxy_command` instead of a local socket: `ssh
+-T` (no pty, which would corrupt the binary mux protocol) runs `wezterm cli
+proxy` on the far end. The GUI's socket name embeds its pid, so the newest
+`gui-sock-*` is chosen at connect time rather than pinned, and the runtime
+directory is resolved remotely via `$XDG_RUNTIME_DIR` rather than assuming a
+uid. The remote host needs WezTerm installed and a GUI instance running.
+
 ## Unattended Updates
 
 `dnf_automatic` keeps the machine patched without prompting. On Fedora 44 this
