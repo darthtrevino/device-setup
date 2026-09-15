@@ -198,6 +198,31 @@ Provisioning cannot complete these, so the roles prompt for them instead.
   `gsettings get` before `set`. Read-only probes set `check_mode: false` so
   `--check` runs report accurately.
 
+## Herdr
+
+The role installs the pinned release binary and an Omarchy-style keybinding
+profile using a `ctrl+space` prefix. That prefix deliberately differs from
+WezTerm's `ctrl+;` leader: Herdr runs *inside* WezTerm, so a shared prefix
+would be swallowed by the terminal and never reach Herdr.
+
+Splits are bound so the keys agree across both tools even though the two name
+them under opposite conventions — `v` puts panes side by side, `h` stacks them:
+
+| Result | Herdr | WezTerm |
+| --- | --- | --- |
+| Side by side | `prefix+v` (`split_vertical`) | `LEADER+v` (`SplitHorizontal`) |
+| Stacked | `prefix+h` (`split_horizontal`) | `LEADER+h` (`SplitVertical`) |
+
+`herdr_transparent_background` (default `true`) sets `panel_bg = "reset"`, which
+makes Herdr emit the terminal's default background rather than painting its own
+— otherwise its chrome would sit on top of WezTerm's translucency and cancel it
+out. Set `herdr_transparent_sidebar` to extend that to the sidebar and the
+selected-row highlight, which are left opaque by default because they are what
+separates the sidebar from the panes.
+
+Config changes apply to a running server with `herdr server reload-config`; no
+restart or session loss is involved.
+
 ## WezTerm
 
 Upstream publishes no stable Fedora channel — their own Fedora instructions

@@ -1,5 +1,31 @@
 # Shortcut profile adapted from Omarchy's Herdr configuration.
 
+[theme]
+name = "{{ herdr_theme }}"
+{% if herdr_transparent_background %}
+
+# Herdr paints its own background, which would sit on top of a translucent
+# terminal and cancel the effect out. "reset" emits the terminal's default
+# background instead, so WezTerm's window opacity shows through.
+[theme.custom]
+panel_bg = "reset"
+{% if herdr_transparent_sidebar %}
+sidebar_bg = "reset"
+active_row_bg = "reset"
+{% endif %}
+{% endif %}
+
+[ui]
+# "symbols" uses distinct static glyphs per agent state (blocked, working,
+# done, idle, unknown) instead of coloured dots, which are hard to tell apart
+# when several agents are listed.
+status_indicators = "{{ herdr_status_indicators }}"
+
+# Hand notifications to the desktop notification service instead of drawing an
+# in-app toast, so they still arrive when Herdr is not the focused window.
+[ui.toast]
+delivery = "{{ herdr_toast_delivery }}"
+
 [keys]
 prefix = "ctrl+space"
 

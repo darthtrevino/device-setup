@@ -31,8 +31,8 @@
   when: herdr_configure_keybindings | bool
 
 - name: Install the Omarchy keybinding profile
-  ansible.builtin.copy:
-    src: config.toml
+  ansible.builtin.template:
+    src: config.toml.j2
     dest: "{{ herdr_config_dir }}/config.toml"
     mode: "0644"
   when: herdr_configure_keybindings | bool
