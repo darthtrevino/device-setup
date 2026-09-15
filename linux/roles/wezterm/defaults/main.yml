@@ -21,8 +21,8 @@ wezterm_package: wezterm
 wezterm_config_dir: "{{ workstation_config_dir }}/wezterm"
 wezterm_config_path: "{{ wezterm_config_dir }}/wezterm.lua"
 
-# Translucent background. Compositing is required, which Plasma on Wayland and
-# Hyprland both provide; without it WezTerm just renders opaque.
+# Translucent background. Compositing is required, which Plasma on Wayland
+# provides; without it WezTerm just renders opaque.
 wezterm_background_opacity: 0.8
 
 # Applies to cells that set their own background, which is most of the screen

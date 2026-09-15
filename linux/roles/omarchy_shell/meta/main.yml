@@ -1,7 +1,0 @@
----
-dependencies:
-  # Supplies workstation_home, workstation_config_dir and workstation_local_bin.
-  - role: workstation
-  # Enables the COPR and excludes quickshell from it, which this role relies on
-  # when it syncs quickshell from Fedora.
-  - role: hyprland

@@ -1,6 +1,0 @@
----
-- name: Install the Hyprland desktop
-  hosts: workstations
-  gather_facts: true
-  roles:
-    - hyprland

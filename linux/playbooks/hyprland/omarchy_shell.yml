@@ -1,6 +1,0 @@
----
-- name: Install the Omarchy Quickshell desktop shell
-  hosts: workstations
-  gather_facts: true
-  roles:
-    - omarchy_shell
