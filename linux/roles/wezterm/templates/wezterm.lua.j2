@@ -9,10 +9,14 @@ config.window_frame = {
   font_size = 10.0,
 }
 
--- Only the background is translucent; text stays fully opaque so it never
--- picks up whatever is behind the window.
+-- window_background_opacity only applies to cells using the default background.
+-- Anything that paints its own background -- a TUI, a highlighted line, ls
+-- colours -- is governed by text_background_opacity instead, so leaving that at
+-- 1.0 makes full-screen TUIs look completely opaque inside a translucent
+-- window. That layer composites on top of the window, so it is set lower to
+-- keep a TUI pane from reading darker than the rest of the terminal.
 config.window_background_opacity = {{ wezterm_background_opacity }}
-config.text_background_opacity = 1.0
+config.text_background_opacity = {{ wezterm_text_background_opacity }}
 
 config.window_padding = {
   left = 4,

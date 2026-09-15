@@ -25,6 +25,13 @@ wezterm_config_path: "{{ wezterm_config_dir }}/wezterm.lua"
 # Hyprland both provide; without it WezTerm just renders opaque.
 wezterm_background_opacity: 0.8
 
+# Applies to cells that set their own background, which is most of the screen
+# under a full-screen TUI such as Herdr or an agent CLI. Such a pane composites
+# this layer on top of the already translucent window, so the two stacked
+# layers read darker than the window alone; kept below
+# wezterm_background_opacity to bring a TUI pane back in line with the rest.
+wezterm_text_background_opacity: 0.7
+
 # Attaching to a remote WezTerm multiplexer is opt-in. Leaving the host empty
 # emits no domain at all, so the config stays valid on a machine that has no
 # such peer -- a declared but unreachable domain would otherwise surface as a
