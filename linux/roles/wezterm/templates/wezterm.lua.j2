@@ -45,7 +45,11 @@ config.leader = { key = ';', mods = 'CTRL', timeout_milliseconds = 2000 }
 
 local act = wezterm.action
 config.keys = {
-  -- Splits
+  -- Splits. The action names look inverted against the keys because WezTerm
+  -- names a split after the axis it divides (SplitHorizontal puts panes side
+  -- by side) while Herdr follows Vim, where a vertical split is the side by
+  -- side one. Bound so the keys agree with Herdr on the result: v gives two
+  -- panes side by side, h gives one above the other.
   { key = 'v', mods = 'LEADER', action = act.SplitHorizontal { domain = 'CurrentPaneDomain' } },
   { key = 'h', mods = 'LEADER', action = act.SplitVertical { domain = 'CurrentPaneDomain' } },
 
