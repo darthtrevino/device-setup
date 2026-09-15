@@ -162,10 +162,11 @@ Provisioning cannot complete these, so the roles prompt for them instead.
   install Hyprland alongside the existing KDE Plasma session rather than
   replacing it. Log out and pick **Hyprland** from the session menu in SDDM to
   use it; nothing about the KDE session changes.
-- **Hyprland keyboard layout.** The ported configuration keeps upstream's
-  Dvorak layout. Override `hyprland_kb_variant` (and `hyprland_kb_layout`) if
-  you type on something else, otherwise the keybindings will land on the wrong
-  physical keys.
+- **Hyprland keyboard layout.** Defaults to the plain `us` layout. Upstream's
+  configuration shipped Dvorak; set `hyprland_kb_variant: dvorak` to restore
+  that, or point `hyprland_kb_layout`/`hyprland_kb_variant` at whatever you
+  type on. This affects the Hyprland session only — the KDE session and the
+  system layout (`localectl`) are untouched.
 - **Wallpapers.** hyprpaper shuffles `~/.wallpapers` every 15 minutes on its
   own, so no timer is involved. The role seeds that directory from Hyprland's
   stock wallpapers only when it is empty; drop your own images in and they are

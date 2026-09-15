@@ -20,10 +20,11 @@ hyprland_dropdown_command: "wezterm start --class dropdown-terminal"
 hyprland_file_manager: dolphin
 hyprland_menu: rofi -show drun
 
-# Upstream ships a Dvorak layout. Kept as the default so the ported config
-# matches the machine it came from, but overridable without editing templates.
+# Upstream ships a Dvorak layout; this defaults to the system layout instead,
+# matching what localectl reports on this machine. Set hyprland_kb_variant to
+# "dvorak" to restore upstream's behaviour.
 hyprland_kb_layout: us
-hyprland_kb_variant: dvorak
+hyprland_kb_variant: ""
 
 hyprland_config_dir: "{{ workstation_config_dir }}/hypr"
 
