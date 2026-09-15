@@ -55,6 +55,11 @@ hyprland_packages:
   - grim
   - hypridle
   - hyprland
+  # Supplies hyprland-dialog. Hyprland is not linked against it and Fedora does
+  # not even recommend it, but without it on PATH the compositor silently
+  # disables its ANR ("application not responding") manager and cannot display
+  # config-error dialogs -- both fail with only a log line.
+  - hyprland-guiutils
   - hyprlock
   - hyprpaper
   - hyprpolkitagent
