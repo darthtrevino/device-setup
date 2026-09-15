@@ -1,10 +1,9 @@
 ---
-- name: Ensure python3 is available for the Catppuccin installer
-  become: true
-  ansible.builtin.dnf:
-    name: python3
-    state: present
-
+# A non-zero rc here means the org.gnome.Terminal.ProfilesList schema is not
+# registered, which is the case whenever GNOME Terminal is not installed. Every
+# task below keys off that, because the upstream installer does not check: it
+# creates a profile UUID, calls gsettings against the missing schema and dies
+# part-way through.
 - name: Read the existing GNOME Terminal profile list
   ansible.builtin.command:
     cmd: gsettings get org.gnome.Terminal.ProfilesList list
@@ -14,8 +13,16 @@
   failed_when: false
 
 - name: Install the Catppuccin GNOME Terminal profiles
-  when: catppuccin_gnome_terminal_mocha_profile_uuid not in (catppuccin_gnome_terminal_profiles.stdout | default(''))
+  when:
+    - catppuccin_gnome_terminal_profiles.rc == 0
+    - catppuccin_gnome_terminal_mocha_profile_uuid not in (catppuccin_gnome_terminal_profiles.stdout | default(''))
   block:
+    - name: Ensure python3 is available for the Catppuccin installer
+      become: true
+      ansible.builtin.dnf:
+        name: python3
+        state: present
+
     - name: Download the Catppuccin installer
       ansible.builtin.get_url:
         url: "{{ catppuccin_gnome_terminal_installer_url }}"
