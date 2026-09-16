@@ -1,0 +1,43 @@
+---
+- name: Install the GitHub Copilot app runtime dependencies
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ github_copilot_app_packages }}"
+    state: present
+
+- name: Read the installed packages
+  ansible.builtin.package_facts:
+    manager: rpm
+
+# The download is around 460 MB, so it is skipped entirely when the pinned
+# version is already installed rather than relying on dnf to no-op afterwards.
+- name: Install the GitHub Copilot app
+  when: >-
+    github_copilot_app_package not in ansible_facts.packages
+    or github_copilot_app_version not in
+    ansible_facts.packages[github_copilot_app_package] | map(attribute='version') | list
+  block:
+    - name: Download the GitHub Copilot app
+      become: true
+      ansible.builtin.get_url:
+        url: "{{ github_copilot_app_rpm_url }}"
+        dest: "{{ github_copilot_app_download_path }}"
+        owner: root
+        group: root
+        mode: "0644"
+
+    # GitHub ships this RPM unsigned and publishes no key for it, so there is
+    # nothing for dnf to verify it against.
+    - name: Install the GitHub Copilot app package
+      become: true
+      ansible.builtin.dnf:
+        name: "{{ github_copilot_app_download_path }}"
+        state: present
+        disable_gpg_check: true
+
+  always:
+    - name: Remove the downloaded GitHub Copilot app package
+      become: true
+      ansible.builtin.file:
+        path: "{{ github_copilot_app_download_path }}"
+        state: absent

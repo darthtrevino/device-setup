@@ -19,6 +19,7 @@
     - git
     - github_cli
     - github_copilot_cli
+    - github_copilot_app
     - herdr
     - vim
     - jq

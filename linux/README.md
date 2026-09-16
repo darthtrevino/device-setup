@@ -84,6 +84,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `git` | Installs Git and configures the user identity |
 | `github_cli` | Installs GitHub CLI from Fedora's package repository |
 | `github_copilot_cli` | Installs the native GitHub Copilot CLI |
+| `github_copilot_app` | Installs the GitHub Copilot desktop app from GitHub's release RPM |
 | `golang` | Installs the latest Go toolchain into `/usr/local/go` |
 | `herdr` | Installs the [herdr](https://github.com/herdrdev/herdr) coding-agent runtime and the Omarchy keybinding profile |
 | `jetbrains_mono` | Installs the JetBrainsMono Nerd Font |
@@ -130,6 +131,7 @@ kde_launchers                                 ->  steam, spotify, discord, bitwa
 herdr                                         ->  workstation
 voxtype                                       ->  workstation, ydotool
 ydotool                                       ->  workstation
+github_copilot_app                            ->  git
 starship, wezterm                            ->  nerd_fonts_hack
 bitwarden, discord, spotify                  ->  flatpak
 steam                                        ->  rpmfusion
@@ -192,6 +194,26 @@ Provisioning cannot complete these, so the roles prompt for them instead.
   Ansible equivalents are guarded with `creates:`, `stat` checks, or a
   `gsettings get` before `set`. Read-only probes set `check_mode: false` so
   `--check` runs report accurately.
+
+## GitHub Copilot App
+
+A desktop client for agent-driven development, built on Copilot CLI. Despite
+the `github-app` path in its marketing URL, this is a native Tauri
+application and not the OAuth integration GitHub also calls a GitHub App.
+
+GitHub publishes no dnf repository and no GPG key for it — only release
+assets on `github/app` — so the role pins a version and fetches the RPM
+directly, installing with `disable_gpg_check` because the package is shipped
+unsigned. Upstream's Tauri updater only offers the AppImage for Linux, so an
+RPM install has no working in-app update path: bump
+`github_copilot_app_version` to upgrade.
+
+The download is around 460 MB and expands to roughly 1.3 GB, so the role
+skips it entirely when the pinned version is already installed and deletes
+the downloaded RPM afterwards.
+
+It needs GTK3 and WebKitGTK 4.1, both current in Fedora 44. If Fedora retires
+`webkit2gtk4.1` before upstream ships a GTK4 build, this breaks.
 
 ## ZSA Keyboards
 

@@ -1,0 +1,4 @@
+---
+dependencies:
+  # The application shells out to git for its repository operations.
+  - role: git

@@ -1,0 +1,28 @@
+---
+# The desktop client for agent-driven development, built on Copilot CLI. The
+# marketing URL says "github-app", but this is a native Tauri application, not
+# the OAuth integration that GitHub also calls a GitHub App.
+#
+# GitHub publishes no dnf repository and no GPG key for it -- only bare release
+# assets -- so the RPM is pinned and fetched directly. Check for a newer tag at
+# https://github.com/github/app/releases before bumping.
+github_copilot_app_version: 1.1.21
+github_copilot_app_rpm_url: >-
+  https://github.com/github/app/releases/download/v{{ github_copilot_app_version }}/GitHub-Copilot-linux-x64.rpm
+
+# The RPM's own package name, used to decide whether the download is needed at
+# all. It is generic because upstream named it that way.
+github_copilot_app_package: github
+
+# The release RPM declares these as shared-library dependencies but they are
+# satisfiable from stock Fedora, so dnf resolves them itself; they are listed
+# to make the GTK3/WebKitGTK 4.1 requirement visible. If Fedora ever retires
+# webkit2gtk4.1, this application breaks until upstream ships a GTK4 build.
+github_copilot_app_packages:
+  - webkit2gtk4.1
+  - gtk3
+  - libayatana-appindicator-gtk3
+
+# The download is around 460 MB and expands to roughly 1.3 GB, so it is removed
+# once dnf has installed it rather than left in place.
+github_copilot_app_download_path: /var/cache/github-copilot-app-{{ github_copilot_app_version }}.rpm
