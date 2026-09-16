@@ -16,6 +16,10 @@ pause_media = true
 model = "{{ voxtype_model }}"
 language = "{{ voxtype_language }}"
 translate = false
+# Matches voxtype's own default. Stated explicitly because voxtype-tray's
+# health check assumes the key is true when it is absent, and then warns that
+# the transcribe-worker helper it would need is missing from PATH.
+gpu_isolation = false
 
 [output]
 mode = "type"
