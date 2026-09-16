@@ -18,8 +18,23 @@ voxtype_packages:
 voxtype_model: base.en
 voxtype_language: en
 
-# KWin emits no key-release events, so push-to-talk is impossible and recording
-# is toggled instead: one press starts, the next stops.
+# Dictation trigger. Voxtype watches the keyboard itself through evdev rather
+# than going through a KDE global shortcut, because KWin emits no key-release
+# events: a compositor shortcut can only ever toggle, whereas evdev sees both
+# edges and so can hold the recording open for as long as the key is down.
+voxtype_hotkey_enabled: true
+voxtype_hotkey_key: SCROLLLOCK
+voxtype_hotkey_mode: push_to_talk
+
+# Reading evdev requires membership of this group, which confers read access
+# to every input device on the machine. It is therefore only granted when the
+# built-in hotkey is actually in use, and takes effect on the next login.
+voxtype_hotkey_group: input
+
+# The KGlobalAccel binding, kept as a fallback for compositors where evdev is
+# unavailable. It cannot do push-to-talk, so enabling it also means setting
+# voxtype_hotkey_mode to toggle.
+voxtype_kde_shortcut_enabled: false
 voxtype_shortcut: Meta+Shift+V
 # KGlobalAccel's D-Bus API takes a Qt keycode, not the human-readable name:
 # Qt::Key_V (0x56) | Qt::MetaModifier (0x10000000) | Qt::ShiftModifier

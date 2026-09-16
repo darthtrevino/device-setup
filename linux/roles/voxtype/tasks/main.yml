@@ -20,6 +20,17 @@
     state: directory
     mode: "0755"
 
+# evdev device nodes are root:input 0660, so the daemon cannot watch the
+# keyboard without this. Group membership only applies to sessions started
+# afterwards, so the hotkey stays dead until the next login.
+- name: Grant access to input devices for the built-in hotkey
+  become: true
+  ansible.builtin.user:
+    name: "{{ workstation_user }}"
+    groups: "{{ voxtype_hotkey_group }}"
+    append: true
+  when: voxtype_hotkey_enabled
+
 - name: Install the Voxtype configuration
   ansible.builtin.template:
     src: config.toml.j2
@@ -60,6 +71,13 @@
     src: voxtype-toggle.desktop.j2
     dest: "{{ workstation_home }}/.local/share/applications/{{ voxtype_shortcut_desktop_file }}"
     mode: "0644"
+  when: voxtype_kde_shortcut_enabled
+
+- name: Remove the Voxtype toggle launcher when the shortcut is unused
+  ansible.builtin.file:
+    path: "{{ workstation_home }}/.local/share/applications/{{ voxtype_shortcut_desktop_file }}"
+    state: absent
+  when: not voxtype_kde_shortcut_enabled
 
 - name: Read the current Voxtype shortcut
   ansible.builtin.command:
@@ -83,7 +101,9 @@
 # so the binding is registered over D-Bus. Editing that file directly would be
 # overwritten, and picking the change up would mean restarting the compositor.
 - name: Register the Voxtype global shortcut
-  when: voxtype_shortcut_keycode | string not in voxtype_current_shortcut.stdout
+  when:
+    - voxtype_kde_shortcut_enabled
+    - voxtype_shortcut_keycode | string not in voxtype_current_shortcut.stdout
   block:
     - name: Declare the Voxtype shortcut action
       ansible.builtin.command:
@@ -118,3 +138,24 @@
           - "[([{{ voxtype_shortcut_keycode }}],)]"
           - "4"
       changed_when: true
+
+# Leaving a stale binding registered would give a second, redundant way to
+# start dictation, so it is actively torn down rather than just left unset.
+- name: Unregister the Voxtype global shortcut when unused
+  ansible.builtin.command:
+    argv:
+      - gdbus
+      - call
+      - --session
+      - --dest
+      - org.kde.kglobalaccel
+      - --object-path
+      - /kglobalaccel
+      - --method
+      - org.kde.KGlobalAccel.unregister
+      - "{{ voxtype_shortcut_desktop_file }}"
+      - _launch
+  when:
+    - not voxtype_kde_shortcut_enabled
+    - voxtype_shortcut_keycode | string in voxtype_current_shortcut.stdout
+  changed_when: true

@@ -142,11 +142,15 @@ Provisioning cannot complete these, so the roles prompt for them instead.
   Run `gaze add-face` (or use the Gaze GUI) to enrol a face; the playbook
   prints a reminder whenever the current user has none. Until a face exists
   every Gaze prompt falls through to the password stack.
-- **Voxtype dictation.** KWin reports no key releases, so push-to-talk is not
-  possible and the `voxtype` role binds `Meta+Shift+V` to
-  `voxtype record toggle` instead: press once to start dictating, again to
-  stop. The binding is registered through KGlobalAccel's D-Bus API because
-  `kglobalshortcutsrc` is owned and rewritten by `kwin_wayland`.
+- **Voxtype dictation.** Recording is push-to-talk on `ScrollLock`: hold to
+  dictate, release to transcribe. Voxtype watches the keyboard directly
+  through evdev rather than using a KDE global shortcut, because KWin emits
+  no key-release events and a compositor shortcut could therefore only
+  toggle. Reading evdev requires the `input` group, which the role grants —
+  but group membership only applies to sessions started afterwards, so **log
+  out and back in once** before the hotkey works. Set
+  `voxtype_kde_shortcut_enabled: true` (with `voxtype_hotkey_mode: toggle`)
+  to fall back to a `Meta+Shift+V` binding instead.
 
 ## Notes on the Comtrya Port
 

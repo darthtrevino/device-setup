@@ -1,10 +1,12 @@
 state_file = "auto"
 
 [hotkey]
-# KWin cannot report key releases, so the built-in evdev hotkey is off and a KDE
-# global shortcut drives `voxtype record toggle` instead. This also avoids
-# needing the user in the `input` group.
-enabled = false
+# evdev reports key releases, which KWin does not, so push-to-talk is only
+# possible through Voxtype's own watcher. Requires the input group; the role
+# grants it.
+enabled = {{ voxtype_hotkey_enabled | bool | string | lower }}
+key = "{{ voxtype_hotkey_key }}"
+mode = "{{ voxtype_hotkey_mode }}"
 
 [audio]
 device = "default"
