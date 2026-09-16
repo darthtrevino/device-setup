@@ -1,0 +1,4 @@
+---
+dependencies:
+  # Supplies workstation_config_dir.
+  - role: workstation

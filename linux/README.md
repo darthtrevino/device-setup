@@ -111,6 +111,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `voxtype` | Installs [Voxtype](https://github.com/peteonrails/voxtype) voice-to-text with a KDE toggle shortcut |
 | `wallpaper_randomizer` | Selects a random KDE wallpaper at startup and every 15 minutes |
 | `wezterm` | Installs [WezTerm](https://wezterm.org) and its Lua configuration |
+| `ydotool` | Runs the ydotool daemon so dictated text can be typed into the focused window |
 | `zen_browser` | Installs [Zen Browser](https://zen-browser.app) to `/opt/zen` |
 | `zen_browser_extensions` | Downloads extension XPIs into the Zen install |
 | `zen_browser_policies` | Renders Zen's `policies.json` enterprise policy |
@@ -127,7 +128,8 @@ nvm                                           ->  git, bashrcd
 kde_orthocal                                  ->  git, workstation
 kde_launchers                                 ->  steam, spotify, discord, bitwarden, microsoft_edge
 herdr                                         ->  workstation
-voxtype                                       ->  workstation
+voxtype                                       ->  workstation, ydotool
+ydotool                                       ->  workstation
 starship, wezterm                            ->  nerd_fonts_hack
 bitwarden, discord, spotify                  ->  flatpak
 steam                                        ->  rpmfusion
@@ -156,6 +158,14 @@ Provisioning cannot complete these, so the roles prompt for them instead.
   out and back in once** before the hotkey works. Set
   `voxtype_kde_shortcut_enabled: true` (with `voxtype_hotkey_mode: toggle`)
   to fall back to a `Meta+Shift+V` binding instead.
+
+  Transcribed text is typed by **ydotool**, not `wtype`. KWin does not
+  implement `virtual-keyboard-unstable-v1` for ordinary clients, so `wtype`
+  fails with *Compositor does not support the virtual keyboard protocol* on
+  every attempt and the text only ever reaches the clipboard. ydotool creates
+  a virtual keyboard in the kernel through `/dev/uinput`, which the
+  compositor cannot refuse. The clipboard remains the last driver in
+  `voxtype_output_drivers`, so nothing is lost if injection fails.
 
 ## Notes on the Comtrya Port
 

@@ -5,16 +5,26 @@ voxtype_version: 1.0.1
 voxtype_rpm_url: >-
   https://github.com/peteonrails/voxtype/releases/download/v{{ voxtype_version }}/voxtype-{{ voxtype_version }}-1.x86_64.rpm
 
-# dotool is the upstream recommendation for KDE, but it is not packaged for
-# Fedora, so typing goes through wtype and falls back to the clipboard.
+# wtype cannot work on KDE: KWin does not implement
+# virtual-keyboard-unstable-v1 for ordinary clients, so it fails with
+# "Compositor does not support the virtual keyboard protocol" and every
+# transcription silently falls through to the clipboard. ydotool goes through
+# the kernel instead, which KWin cannot refuse. The clipboard is kept last so
+# nothing is ever lost outright.
+voxtype_output_drivers:
+  - ydotool
+  - clipboard
+
 # pipewire-alsa is required: without it capture fails with "device not
 # available".
 # gtk4-layer-shell is needed by the on-screen display, which the release RPM
 # ships but does not declare a dependency on: without it voxtype-osd-gtk4
 # cannot resolve libgtk4-layer-shell.so.0, and the daemon gives up after the
 # OSD child crashes three times.
+# wtype is deliberately absent; see voxtype_output_drivers above. Add it back
+# alongside the driver if this role is ever pointed at a compositor that
+# implements the protocol.
 voxtype_packages:
-  - wtype
   - wl-clipboard
   - libnotify
   - pipewire-alsa

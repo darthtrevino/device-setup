@@ -26,7 +26,7 @@ gpu_isolation = false
 [output]
 mode = "type"
 fallback_to_clipboard = true
-# dotool is absent on Fedora, so wtype handles typing and the clipboard catches
-# anything it cannot insert.
-driver_order = ["wtype", "clipboard"]
+# Driver selection is explained in the role's defaults; the clipboard stays
+# last so a failed injection still leaves the text somewhere.
+driver_order = [{% for d in voxtype_output_drivers %}"{{ d }}"{% if not loop.last %}, {% endif %}{% endfor %}]
 type_delay_ms = 1

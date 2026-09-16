@@ -1,0 +1,13 @@
+# ydotoold needs to create a virtual input device, which means write access to
+# /dev/uinput. The node is root:root 0660 by default, so nothing but root can
+# open it.
+#
+# uaccess grants it to whoever is logged in at the local seat, rather than to a
+# group: the permission follows the active session and disappears at logout,
+# and needs no re-login to take effect. static_node applies the same to the
+# device node that exists before any hotplug event, since uinput is a fixed
+# misc device rather than something that appears when hardware is attached.
+#
+# Note this is the ability to synthesise input into the session, so it is
+# deliberately scoped to the seated user rather than handed to a group.
+KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess", OPTIONS+="static_node=uinput"

@@ -1,0 +1,58 @@
+---
+- name: Install ydotool
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ ydotool_packages }}"
+    state: present
+
+- name: Install the uinput device access rule
+  become: true
+  ansible.builtin.copy:
+    src: 60-ydotool-uinput.rules
+    dest: "{{ ydotool_udev_rule_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload ydotool device access
+  when: ydotool_manage_udev_rule
+
+- name: Load the uinput module at boot
+  become: true
+  ansible.builtin.copy:
+    content: "uinput\n"
+    dest: "{{ ydotool_modules_load_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Load the uinput module
+  when: ydotool_manage_udev_rule
+
+- name: Ensure the user systemd and environment directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ ydotool_systemd_dir }}"
+    - "{{ workstation_config_dir }}/environment.d"
+
+- name: Install the ydotool socket location
+  ansible.builtin.template:
+    src: ydotool.conf.j2
+    dest: "{{ workstation_config_dir }}/environment.d/ydotool.conf"
+    mode: "0644"
+
+- name: Install the ydotoold user service
+  ansible.builtin.template:
+    src: ydotoold.service.j2
+    dest: "{{ ydotool_systemd_dir }}/{{ ydotool_service_name }}"
+    mode: "0644"
+  notify: Restart ydotoold
+
+- name: Enable the ydotoold user service
+  ansible.builtin.systemd_service:
+    name: "{{ ydotool_service_name }}"
+    scope: user
+    enabled: true
+    state: started
+    daemon_reload: true

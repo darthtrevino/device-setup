@@ -1,0 +1,5 @@
+# The ydotool client resolves its socket from YDOTOOL_SOCKET, falling back to
+# /tmp/.ydotool_socket, which is not where the daemon is told to put it.
+# environment.d is read by the systemd user manager, so this reaches user
+# services -- voxtype among them -- and not just interactive shells.
+YDOTOOL_SOCKET={{ ydotool_socket_env }}

@@ -2,3 +2,6 @@
 dependencies:
   # Supplies workstation_home.
   - role: workstation
+  # Provides the ydotool daemon and the /dev/uinput access it needs, which is
+  # how transcribed text reaches the focused window on KDE.
+  - role: ydotool
