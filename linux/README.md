@@ -99,6 +99,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `podman` | Installs **rootless** Podman and exposes a Docker-compatible socket |
 | `rpmfusion` | Enables the RPM Fusion free and nonfree repositories |
 | `rust` | Installs Rust via rustup and keeps toolchains updated |
+| `shellcheck` | Installs ShellCheck for linting this repo's shell scripts |
 | `sshd` | Enables and starts the OpenSSH server, and opens it in firewalld |
 | `spotify` | Installs Spotify from Flathub |
 | `starship` | Installs the [Starship](https://starship.rs) prompt and its configuration |
@@ -376,3 +377,24 @@ ansible-lint
 ```
 
 The repo is clean at ansible-lint's `production` profile.
+
+### Shell scripts
+
+`ansible-lint` does not look inside shell scripts, and this repo ships a
+handful — the bootstrap script, the `~/.bashrc.d` snippets in `roles/*/files/`,
+and script templates in `roles/*/templates/`. ShellCheck covers those. It is
+installed by `bootstrap.sh` and by the `shellcheck` role, and is packaged by
+Fedora as `ShellCheck`, not `shellcheck`.
+
+```bash
+shellcheck bootstrap.sh
+shellcheck -s bash -e SC1091 roles/*/files/*.sh
+```
+
+The two flags on the second command are both needed:
+
+- `-s bash` because the `~/.bashrc.d` snippets are sourced fragments with no
+  shebang, which ShellCheck otherwise refuses to classify (SC2148).
+- `-e SC1091` because those snippets source files that only exist at runtime
+  (`~/.cargo/env`, `~/.nvm/nvm.sh`), which ShellCheck cannot follow at lint
+  time. This suppresses an unavoidable *info*, not a real finding.

@@ -27,10 +27,13 @@ echo "==> Installing ansible-core + supporting tools"
 #
 # python3-dnf is pulled in explicitly so ansible.builtin.dnf keeps working even
 # though Fedora is on dnf5; ansible-lint is here because roles in this repo are
-# expected to stay lint-clean as more get added.
+# expected to stay lint-clean as more get added. ShellCheck is here for the same
+# reason: this repo ships shell snippets and script templates, and it is
+# packaged under its upstream CamelCase name rather than `shellcheck`.
 dnf install -y \
   ansible-core \
   ansible-lint \
+  ShellCheck \
   python3-dnf \
   python3-libdnf5 \
   git \
