@@ -1,0 +1,20 @@
+---
+# Device access rules for ZSA keyboards (Moonlander, Voyager, Ergodox EZ,
+# Planck EZ) so that Oryx can flash firmware from the browser over WebHID
+# and WebUSB without the browser running as root.
+
+zsa_keyboard_rules_dir: /etc/udev/rules.d
+zsa_keyboard_vendor_rule: 50-zsa.rules
+zsa_keyboard_uaccess_rule: 51-zsa-uaccess.rules
+
+# ZSA's published rules hand access to the "plugdev" group. Fedora has no
+# such group, so it is created here purely to keep the vendor file working
+# as written. The rules that actually grant this user access are the
+# uaccess ones below; see files/51-zsa-uaccess.rules for why.
+zsa_keyboard_group: plugdev
+zsa_keyboard_manage_group: true
+
+# Grant access through systemd's seat ACLs in addition to the vendor's
+# group. Turn this off to follow ZSA's documentation exactly, at the cost of
+# needing a full logout before flashing works.
+zsa_keyboard_manage_uaccess: true

@@ -1,0 +1,6 @@
+---
+- name: Configure ZSA keyboard flashing
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - zsa_keyboard

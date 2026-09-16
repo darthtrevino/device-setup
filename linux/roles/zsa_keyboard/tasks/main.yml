@@ -1,0 +1,48 @@
+---
+# ZSA's rules reference the "plugdev" group, which does not exist on Fedora.
+# udev logs an "unknown group" error and drops the whole rule line if it is
+# missing, so the group has to exist even though the uaccess rules are what
+# actually grant this user access.
+- name: Ensure the plugdev group exists
+  become: true
+  ansible.builtin.group:
+    name: "{{ zsa_keyboard_group }}"
+    state: present
+  when: zsa_keyboard_manage_group
+
+- name: Add the workstation user to the plugdev group
+  become: true
+  ansible.builtin.user:
+    name: "{{ workstation_user }}"
+    groups: "{{ zsa_keyboard_group }}"
+    append: true
+  when: zsa_keyboard_manage_group
+
+- name: Install the ZSA device access rules
+  become: true
+  ansible.builtin.copy:
+    src: "{{ zsa_keyboard_vendor_rule }}"
+    dest: "{{ zsa_keyboard_rules_dir }}/{{ zsa_keyboard_vendor_rule }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload ZSA device access
+
+- name: Install the ZSA seat access rules
+  become: true
+  ansible.builtin.copy:
+    src: "{{ zsa_keyboard_uaccess_rule }}"
+    dest: "{{ zsa_keyboard_rules_dir }}/{{ zsa_keyboard_uaccess_rule }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload ZSA device access
+  when: zsa_keyboard_manage_uaccess
+
+- name: Remove the ZSA seat access rules when disabled
+  become: true
+  ansible.builtin.file:
+    path: "{{ zsa_keyboard_rules_dir }}/{{ zsa_keyboard_uaccess_rule }}"
+    state: absent
+  notify: Reload ZSA device access
+  when: not zsa_keyboard_manage_uaccess

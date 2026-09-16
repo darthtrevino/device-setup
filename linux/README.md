@@ -109,6 +109,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `zen_browser` | Installs [Zen Browser](https://zen-browser.app) to `/opt/zen` |
 | `zen_browser_extensions` | Downloads extension XPIs into the Zen install |
 | `zen_browser_policies` | Renders Zen's `policies.json` enterprise policy |
+| `zsa_keyboard` | Installs udev rules so Oryx can flash ZSA keyboards from the browser |
 
 ## Role Dependencies
 
@@ -126,6 +127,7 @@ starship, wezterm                            ->  nerd_fonts_hack
 bitwarden, discord, spotify                  ->  flatpak
 steam                                        ->  rpmfusion
 surface_dial                                 ->  workstation
+zsa_keyboard                                 ->  workstation
 zen_browser_extensions, zen_browser_policies -> zen_browser
 wallpaper_randomizer                         -> workstation
 jetbrains_mono                               -> workstation
@@ -171,6 +173,36 @@ Provisioning cannot complete these, so the roles prompt for them instead.
   Ansible equivalents are guarded with `creates:`, `stat` checks, or a
   `gsettings get` before `set`. Read-only probes set `check_mode: false` so
   `--check` runs report accurately.
+
+## ZSA Keyboards
+
+The `zsa_keyboard` role installs the udev rules that let
+[Oryx](https://configure.zsa.io) flash a Moonlander, Voyager, Ergodox EZ or
+Planck EZ from the browser, over WebHID and WebUSB, without running the
+browser as root.
+
+ZSA publishes a single `50-zsa.rules` that grants access through the
+`plugdev` group. That file is vendored verbatim so it stays easy to re-diff
+when ZSA revises it, but `plugdev` is a Debian convention: Fedora ships no
+such group, and even once created, membership only applies to sessions
+started afterwards. A companion `51-zsa-uaccess.rules` therefore tags the
+same devices with systemd's `uaccess`, which `73-seat-late.rules` turns into
+an ACL for whoever is logged in at the local seat. Access is granted as soon
+as the keyboard appears and revoked at logout, with no group to join and no
+re-login required. It is the same mechanism that already grants this user
+access to Yubikeys and game controllers.
+
+The bootloader needs its own rule. A Moonlander disconnects mid-flash and
+re-enumerates as an STM32 DFU device (`0483:df11`), so a rule matching only
+the keyboard's own `3297` vendor ID would cover the handshake but not the
+write.
+
+Set `zsa_keyboard_manage_uaccess: false` to follow ZSA's documentation
+exactly, at the cost of needing a full logout before flashing works.
+
+Snap-packaged browsers additionally need `sudo snap connect <browser>:raw-usb`.
+That does not apply here: Edge is installed from Microsoft's dnf repository
+by the `microsoft_edge` role, and this machine has no snap.
 
 ## Herdr
 
