@@ -27,6 +27,17 @@ ansible-playbook playbooks/development/podman.yml -K
 ansible-playbook playbooks/workstation.yml -K --check --diff
 ```
 
+On a machine running face authentication, `pam_gaze` runs ahead of sudo's
+password prompt, and a scan that finds no face costs around eight seconds.
+`inventory.ini` raises `ansible_local_become_success_timeout` to absorb that;
+without it, escalating tasks intermittently fail as `UNREACHABLE` with *Timed
+out waiting for become success*. Authenticating once up front is quicker still,
+since a cached sudo timestamp skips the camera entirely — note the absent `-K`:
+
+```bash
+sudo -v && ansible-playbook playbooks/workstation.yml
+```
+
 ## Layout
 
 ```
