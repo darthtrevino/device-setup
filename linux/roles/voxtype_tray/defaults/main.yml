@@ -1,0 +1,23 @@
+---
+# Upstream ships no packaging for Fedora -- only an AUR recipe and a "copy the
+# file" manual install -- and publishes no release artifacts, so the single
+# script is pulled from a tagged ref and checksummed. Tags run ahead of
+# GitHub releases here: v1.2.3 is the newest tag and is byte-identical to the
+# current main, while the latest published release is still v1.1.0.
+voxtype_tray_version: v1.2.3
+voxtype_tray_url: >-
+  https://raw.githubusercontent.com/matt-shearing/voxtype-tray/{{ voxtype_tray_version }}/voxtype-tray.py
+voxtype_tray_checksum: sha256:ecb46cdc85c067638b9f6d11ef5b506cab4dcf89df119e134ed769b201ba57a6
+
+# The tray is a PyQt6 application; Fedora packages the bindings, so nothing is
+# installed into a virtualenv or with pip.
+voxtype_tray_packages:
+  - python3-pyqt6
+
+voxtype_tray_bin: "{{ workstation_local_bin }}/voxtype-tray"
+voxtype_tray_desktop_file: voxtype-tray.desktop
+voxtype_tray_autostart_dir: "{{ workstation_config_dir }}/autostart"
+
+# The tray is only useful while it is running, and it has no window of its own,
+# so it is started with the session rather than launched by hand.
+voxtype_tray_autostart: true

@@ -1,0 +1,6 @@
+---
+- name: Install the VoxType tray applet
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - voxtype_tray

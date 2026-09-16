@@ -44,6 +44,7 @@
     - surface_dial
     - gaze
     - voxtype
+    - voxtype_tray
 
     # ── Desktop applications ──
     - wezterm

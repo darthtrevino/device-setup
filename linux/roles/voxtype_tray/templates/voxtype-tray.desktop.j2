@@ -1,0 +1,15 @@
+[Desktop Entry]
+# Upstream's entry runs a bare `voxtype-tray`, which relies on ~/.local/bin
+# being on PATH. A desktop file launched by Plasma inherits the session
+# environment, not the one Fedora's ~/.bashrc builds, so the absolute path is
+# used instead.
+Name=VoxType Tray
+Comment=System tray for VoxType voice dictation
+Exec={{ voxtype_tray_bin }}
+Icon=audio-input-microphone
+Terminal=false
+Type=Application
+Categories=Settings;AudioVideo;
+Keywords=voice;dictation;speech;voxtype;tray;
+X-KDE-autostart-phase=2
+X-KDE-autostart-after=panel
