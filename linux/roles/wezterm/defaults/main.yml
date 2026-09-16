@@ -32,6 +32,15 @@ wezterm_background_opacity: 0.8
 # wezterm_background_opacity to bring a TUI pane back in line with the rest.
 wezterm_text_background_opacity: 0.7
 
+# Plasma ships no default terminal, so KIO falls back to konsole. KIO's
+# terminal launcher prefers TerminalService, a desktop file that also carries
+# the name and icon shown in System Settings, and only falls back to
+# TerminalApplication, a bare executable, when that is unset. Both are written
+# so the setting holds whichever path a given KDE application takes.
+wezterm_set_default_terminal: true
+wezterm_desktop_file: org.wezfurlong.wezterm.desktop
+wezterm_kdeglobals: "{{ workstation_config_dir }}/kdeglobals"
+
 # Attaching to a remote WezTerm multiplexer is opt-in. Leaving the host empty
 # emits no domain at all, so the config stays valid on a machine that has no
 # such peer -- a declared but unreachable domain would otherwise surface as a

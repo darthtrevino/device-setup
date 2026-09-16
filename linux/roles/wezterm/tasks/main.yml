@@ -37,3 +37,17 @@
     dest: "{{ wezterm_config_path }}"
     mode: "0644"
     backup: true
+
+# kdeglobals is shared with the rest of Plasma and rewritten by KDE itself, so
+# only these two keys are touched rather than templating the whole file.
+- name: Make WezTerm the default KDE terminal
+  community.general.ini_file:
+    path: "{{ wezterm_kdeglobals }}"
+    section: General
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    mode: "0644"
+  loop:
+    - {option: TerminalService, value: "{{ wezterm_desktop_file }}"}
+    - {option: TerminalApplication, value: "{{ wezterm_package }}"}
+  when: wezterm_set_default_terminal | bool

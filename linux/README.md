@@ -217,6 +217,27 @@ because that layer composites on top of the already translucent window. Both
 need a compositor, which Plasma on Wayland provides — without one, WezTerm
 simply renders opaque.
 
+### Default Terminal
+
+The role points KDE at WezTerm, so Dolphin's *Open Terminal* and anything else
+going through KIO opens it rather than Konsole. Plasma ships no default of its
+own, so without this KIO falls back to Konsole.
+
+Two keys are written to `~/.config/kdeglobals`, because KIO's terminal launcher
+prefers `TerminalService` and only falls back to `TerminalApplication` when it
+is unset:
+
+| Key | Value |
+|-----|-------|
+| `TerminalService` | `org.wezfurlong.wezterm.desktop` |
+| `TerminalApplication` | `wezterm` |
+
+Only those keys are touched — `kdeglobals` is shared with the rest of Plasma
+and rewritten by KDE itself, so templating the whole file would fight it.
+Already-running applications keep the old setting until they restart. Set
+`wezterm_set_default_terminal: false` to leave the choice alone; Konsole stays
+installed either way.
+
 ### Remote Multiplexer Domain
 
 The role can declare a WezTerm multiplexer domain that attaches to the *live GUI
