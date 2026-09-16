@@ -99,6 +99,8 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `nerd_fonts_hack` | Installs Hack Nerd Font and sets it as the desktop monospace font |
 | `no_notifications` | Disables GNOME event sounds |
 | `nvm` | Installs Node Version Manager and Bash integration |
+| `onedrive` | Syncs one or more OneDrive accounts, each as its own systemd user service |
+| `onedrive_tray` | Builds [onedrive_tray](https://github.com/DanielBorgesOliveira/onedrive_tray) and supervises each OneDrive account from the system tray |
 | `podman` | Installs **rootless** Podman and exposes a Docker-compatible socket |
 | `ripgrep` | Installs [ripgrep](https://github.com/BurntSushi/ripgrep) (`rg`) |
 | `rpmfusion` | Enables the RPM Fusion free and nonfree repositories |
@@ -143,6 +145,8 @@ starship, wezterm                            ->  nerd_fonts_hack
 bitwarden, discord, spotify                  ->  flatpak
 steam                                        ->  rpmfusion
 surface_dial                                 ->  workstation
+onedrive                                     ->  workstation
+onedrive_tray                                ->  onedrive
 zsa_keyboard                                 ->  workstation
 zen_browser_extensions, zen_browser_policies -> zen_browser
 wallpaper_randomizer                         -> workstation
@@ -175,6 +179,11 @@ Provisioning cannot complete these, so the roles prompt for them instead.
   a virtual keyboard in the kernel through `/dev/uinput`, which the
   compositor cannot refuse. The clipboard remains the last driver in
   `voxtype_output_drivers`, so nothing is lost if injection fails.
+- **OneDrive sign-in.** Authorisation is an interactive browser sign-in, so
+  the `onedrive` role sets up the configuration and the service but cannot
+  complete the sign-in itself. Run `setup-onedrive-personal.sh`, which signs
+  in, runs an initial sync and enables the service. See
+  [OneDrive](#onedrive).
 
 ## Notes on the Comtrya Port
 
@@ -221,6 +230,227 @@ the downloaded RPM afterwards.
 
 It needs GTK3 and WebKitGTK 4.1, both current in Fedora 44. If Fedora retires
 `webkit2gtk4.1` before upstream ships a GTK4 build, this breaks.
+
+## OneDrive
+
+Microsoft ships no OneDrive client for Linux, so this uses
+[abraunegg/onedrive](https://github.com/abraunegg/onedrive) — a third-party
+reimplementation against the Graph API, packaged by Fedora as `onedrive`.
+
+Each account gets its own configuration directory, local sync directory and
+systemd user service. Only a personal account is configured:
+
+| Account | Configuration | Syncs to | Service |
+| --- | --- | --- | --- |
+| `personal` | `~/.config/onedrive-personal` | `~/OneDrive` | `onedrive-tray@personal.service` |
+
+The per-account plumbing is kept even with a single account, because it costs
+nothing and adding a second is then just another list entry. Neither unit the
+package ships can do this: `onedrive.service` is hardcoded to a single
+configuration directory, and the packaged `onedrive@.service` is a *system*
+unit instanced by **user name** — it solves "many users, one account each",
+not "one user, many accounts". The role therefore installs its own template
+unit into `~/.config/systemd/user/onedrive@.service` that derives the
+configuration directory from the instance name, so one unit file serves any
+number of accounts.
+
+### System tray
+
+The client has no UI of its own, so `onedrive_tray` provides one: a tray icon
+showing sync status, with start, stop, force-sync and "open folder" actions,
+and a progress window on a left click.
+
+The important thing to understand is that **the tray is a supervisor, not a
+viewer**. It starts its own `onedrive` child and drives the icon by parsing
+that child's output — it never talks to systemd. Since the client refuses to
+run a second instance against the same configuration directory, the tray and
+`onedrive@<account>.service` cannot both run. Exactly one supervisor is
+enabled per account, chosen by `onedrive_supervisor` in
+`group_vars/all/onedrive.yml`:
+
+| Value | Unit | Runs |
+| --- | --- | --- |
+| `client` | `onedrive@<account>.service` | The client directly. Headless; needs no desktop session. |
+| `tray` | `onedrive-tray@<account>.service` | `onedrive_tray`, which starts the client itself. Needs a graphical session. |
+
+This workstation uses `tray`. Whichever role runs stops and disables the other
+supervisor, so flipping the value and re-applying is enough to switch; the
+tray unit also declares `Conflicts=onedrive@%i.service` so systemd refuses the
+combination even if something enables both by hand.
+
+The tray unit is ordered `PartOf=graphical-session.target` — it starts with the
+desktop session and stops with it, rather than being left as an orphan at
+logout.
+
+Upstream ships no releases, no packages and nothing on Flathub, so the role
+compiles it from a pinned commit with Qt 5. The commit it was built from is
+recorded in `/usr/local/share/onedrive_tray/commit`, which is what keeps a
+normal run from recompiling; bump `onedrive_tray_version` to rebuild.
+
+> [!NOTE]
+> The tray needs a system tray to dock into and exits when it finds none. It
+> is therefore only useful in a desktop session — on a headless machine set
+> `onedrive_supervisor: client`.
+
+### Signing in
+
+Authorisation is an interactive sign-in and cannot be automated. Note that
+**no account name or email appears anywhere in the configuration** — the
+client has no such option. A configuration directory binds to whichever
+identity you sign in as, and stays bound to it. Getting the right account is
+therefore entirely down to the sign-in step.
+
+The role installs a helper per account that performs the sign-in, runs an
+initial sync and enables the service once it succeeds:
+
+```bash
+setup-onedrive-personal.sh
+```
+
+A personal account (`@outlook.com`, `@hotmail.com`, any MSA) has to use
+browser sign-in — Microsoft blocks the device-code flow for personal accounts
+on unapproved applications. The browser reuses whatever Microsoft session it
+already holds, so it can bind a different account without asking. If that
+happens, rebind using a browser with no Microsoft session:
+
+```bash
+setup-onedrive-personal.sh --reauth --browser firefox
+```
+
+Confirm it bound to the account you expected — the sign-in output reports the
+account type and drive:
+
+```text
+Account Type:         personal
+Default Drive ID:     <drive-id>
+```
+
+The client writes a `refresh_token` into the configuration directory when this
+succeeds. The role treats that file as the marker that an account is ready and
+**only enables the service for accounts that have it** — an instance with no
+token exits immediately, and systemd's start rate limiting would otherwise
+leave the unit failed. The helper enables the service itself; re-running the
+playbook does the same thing:
+
+```bash
+ansible-playbook playbooks/applications/onedrive_tray.yml -K
+```
+
+Accounts still waiting on a sign-in are named in the playbook output.
+
+Check on a running account with:
+
+```bash
+systemctl --user status onedrive-tray@personal.service
+journalctl --user -u onedrive-tray@personal.service -f
+```
+
+With `onedrive_supervisor: client`, use `onedrive@personal.service` in both
+commands instead.
+
+### Configuring accounts
+
+`onedrive_accounts` defines the list. Adding an account, or changing where one
+syncs to, needs nothing beyond this variable:
+
+```yaml
+onedrive_accounts:
+  - name: personal
+    sync_dir: "{{ workstation_home }}/OneDrive"
+  - name: archive
+    sync_dir: "{{ workstation_home }}/OneDrive - Archive"
+    options:
+      download_only: true
+```
+
+`options` accepts any key from the client's configuration file — see
+`/usr/share/doc/onedrive/config` for the full list — and is merged over
+`onedrive_common_options`. Only the options set here are written out, so the
+generated config stays reviewable instead of being a copy of the shipped
+example with one line changed.
+
+Each account listed gets its own `setup-onedrive-<name>.sh` helper.
+
+### Selective sync
+
+By default the client downloads the **entire** drive. An account can instead
+list the paths it wants in `sync_list`, which the role writes into the
+account's configuration directory:
+
+```yaml
+onedrive_accounts:
+  - name: personal
+    sync_dir: "{{ workstation_home }}/OneDrive"
+    sync_list:
+      - /Books/
+      - /Gaming/
+    options:
+      sync_root_files: true
+```
+
+Things worth knowing before relying on it:
+
+- **It excludes everything it does not list**, and an exclusion always beats
+  an inclusion. Omitting `sync_list` entirely syncs the whole drive; the role
+  only writes the file for accounts that define one, because an empty file
+  would sync nothing at all.
+- **Anchor the rules.** `/Books/` is matched as a path. A bare `Books` makes
+  the client scan every folder, online and local, looking for that name — the
+  most expensive form of rule there is.
+- **Loose files in the drive root match no rule.** `sync_root_files` covers
+  them, and saves amending `sync_list` (and resyncing) each time one appears.
+- **Filtering is client-side.** Graph supports no server-side selective sync,
+  so the client still enumerates the whole remote tree on every run. What is
+  saved is the file transfers, not the enumeration — expect the initial
+  "nothing is happening" phase regardless.
+- **Changes need a full resynchronisation** before they take effect. The
+  playbook detects a changed `sync_list` and prints the command rather than
+  running it, since a resync is heavy and prompts for confirmation:
+
+```bash
+setup-onedrive-personal.sh --resync
+```
+
+> [!NOTE]
+> A resync is not destructive locally: anything that falls out of scope is
+> left on disk untouched, simply no longer synchronised. Reclaim that space by
+> deleting the excluded folders by hand. Local files that are *not* excluded
+> by a rule but are missing online are treated as new content and uploaded.
+
+> [!NOTE]
+> Removing an account from `onedrive_accounts` stops it being configured, but
+> does not stop or disable a service that is already running, nor remove its
+> configuration directory, sync directory or helper script. Clean those up by
+> hand:
+> ```bash
+> systemctl --user disable --now onedrive@<account>.service onedrive-tray@<account>.service
+> rm -rf ~/.config/onedrive-<account> ~/.local/bin/setup-onedrive-<account>.sh
+> ```
+
+### Work or school accounts
+
+A **work or school account is not configured**, because authorising one
+against a Microsoft tenant did not succeed. Many tenants apply Conditional
+Access policies that block unapproved third-party applications, and the
+device-code flow specifically, in which case sign-in fails regardless of how
+the client is configured — a tenant policy decision rather than something this
+role can work around.
+
+If this is revisited, the options are, in rough order of likelihood:
+
+- `use_intune_sso: true` — authenticates through the Microsoft Identity
+  Broker on an Intune-enrolled machine. Needs `microsoft-identity-broker` and
+  `intune-portal`, which this repo does not install.
+- `application_id: "<guid>"` — point the client at an application
+  registration the tenant has approved. The registration needs the redirect
+  URIs `http://127.0.0.1:53100/` and
+  `https://login.microsoftonline.com/common/oauth2/nativeclient`, or sign-in
+  fails with `AADSTS50011`.
+- `use_device_auth: true` — sign in with a code at
+  <https://microsoft.com/devicelogin> instead of a browser redirect, which
+  also avoids binding the wrong account from an existing browser session.
+  Valid only for Entra ID accounts; Microsoft blocks this flow for personal
+  accounts.
 
 ## ZSA Keyboards
 
@@ -404,3 +634,11 @@ The two flags on the second command are both needed:
 - `-e SC1091` because those snippets source files that only exist at runtime
   (`~/.cargo/env`, `~/.nvm/nvm.sh`), which ShellCheck cannot follow at lint
   time. This suppresses an unavoidable *info*, not a real finding.
+
+Shell **templates** (`*.sh.j2`) cannot be checked directly — Jinja control
+tags are not valid shell. Check the rendered copy instead, after a playbook
+run has written it out:
+
+```bash
+shellcheck ~/.local/bin/setup-onedrive-*.sh
+```

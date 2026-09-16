@@ -1,0 +1,19 @@
+---
+# Restarting is deliberately limited to accounts that have already been
+# authorised: an instance without a refresh token exits immediately, and
+# systemd's start rate limit would then leave the unit in a failed state.
+#
+# Whichever supervisor is in use is the one restarted, so a change to an
+# account's configuration is picked up either way. The tray unit is skipped
+# when its template is not installed yet, which is the case on the first run
+# that switches a machine over to it -- the onedrive_tray role starts it.
+- name: Restart authorised OneDrive accounts
+  ansible.builtin.systemd_service:
+    name: "{{ onedrive_unit_prefix }}{{ item.name }}.service"
+    scope: user
+    state: restarted
+    daemon_reload: true
+  loop: "{{ onedrive_authorised_accounts | default([]) }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: onedrive_supervisor == 'client' or onedrive_tray_unit_stat.stat.exists | default(false)

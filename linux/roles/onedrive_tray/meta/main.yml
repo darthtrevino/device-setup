@@ -1,0 +1,6 @@
+---
+# The tray only supervises an account the onedrive role has already installed,
+# configured and authorised, and it reuses that role's systemd directory,
+# account list and restart handler.
+dependencies:
+  - role: onedrive

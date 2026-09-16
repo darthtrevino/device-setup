@@ -1,0 +1,41 @@
+---
+# A Qt5 system tray icon for the OneDrive client: it shows sync progress on a
+# left click and offers start, stop, force-sync and "open folder" actions on a
+# right click.
+#
+# The tray is a supervisor, not a viewer -- it spawns its own `onedrive` child
+# rather than talking to systemd -- so it replaces onedrive@<account>.service
+# rather than running alongside it. See group_vars/all/onedrive.yml.
+#
+# Upstream publishes no releases, no packages and nothing on Flathub, and
+# Fedora does not carry it, so it is compiled from a pinned commit. Upstream
+# has been quiet since January 2025; check before moving the pin:
+# https://github.com/DanielBorgesOliveira/onedrive_tray
+onedrive_tray_repo: https://github.com/DanielBorgesOliveira/onedrive_tray.git
+onedrive_tray_version: e0b76072c2b6c67e431fa4974f9dc391c2c4ba46
+
+# qt5-qtbase-gui is named explicitly rather than left to the devel package to
+# pull in, because it owns the libraries the finished binary links against at
+# runtime and would otherwise only be present by accident.
+onedrive_tray_build_packages:
+  - qt5-qtbase-devel
+  - qt5-qtbase-gui
+  - gcc-c++
+  - make
+  - git
+
+# Compiled under the user's cache directory so that only the two install steps
+# need root; the build itself has no reason to run privileged.
+onedrive_tray_build_dir: "{{ workstation_home }}/.cache/onedrive_tray"
+onedrive_tray_install_path: /usr/local/bin/onedrive_tray
+
+# The program has no --version option, so the commit it was built from is
+# recorded next to it. Without this the role would recompile on every run.
+onedrive_tray_stamp_path: /usr/local/share/onedrive_tray/commit
+
+onedrive_tray_service_template: onedrive-tray@.service
+
+# Passed straight through to the onedrive child. --verbose is load-bearing
+# rather than cosmetic: the tray drives its icon and progress window by parsing
+# the client's standard output, and shows nothing without it.
+onedrive_tray_client_args: --monitor --verbose

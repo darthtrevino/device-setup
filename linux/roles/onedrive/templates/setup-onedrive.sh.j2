@@ -1,0 +1,214 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Managed by Ansible (roles/onedrive). Local edits will be overwritten.
+#
+# Interactive sign-in helper for the '{{ account.name }}' OneDrive account.
+# Authorisation cannot be driven from Ansible: a human has to choose an
+# identity and approve access in a browser, so the role installs this instead
+# and asks you to run it.
+#
+# Enabling the service at the end duplicates what the playbook does. That is
+# deliberate -- it saves a second privileged Ansible run purely to flip a user
+# unit on, and the playbook stays authoritative and idempotent either way.
+{% set opts = onedrive_common_options | combine(account.options | default({})) %}
+
+ACCOUNT="{{ account.name }}"
+CONFDIR="{{ workstation_config_dir }}/onedrive-{{ account.name }}"
+SYNC_DIR="{{ account.sync_dir }}"
+# Whichever unit supervises this account -- the client's own, or the tray that
+# starts the client itself. See group_vars/all/onedrive.yml.
+SERVICE="{{ onedrive_unit_prefix }}{{ account.name }}.service"
+DEVICE_AUTH={{ 1 if opts.use_device_auth | default(false) | bool else 0 }}
+
+REAUTH=0
+RESYNC=0
+BROWSER_OVERRIDE=""
+
+usage() {
+  cat <<EOF
+Usage: ${0##*/} [--reauth] [--resync] [--browser COMMAND]
+
+Signs the '${ACCOUNT}' OneDrive account in, runs an initial sync and enables
+its background sync service.
+
+  --reauth            Discard the existing authorisation and sign in again.
+                      Use this to bind this configuration to a different
+                      account, or after revoking access.
+  --resync            Forget the saved sync state and rebuild it. Required
+                      after the sync_list rules change, otherwise the new
+                      filtering is ignored. The client asks for confirmation
+                      before it proceeds.
+  --browser COMMAND   Use COMMAND for the sign-in redirect instead of the
+                      default browser, e.g. --browser firefox.
+  -h, --help          Show this help.
+EOF
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --reauth)
+      REAUTH=1
+      shift
+      ;;
+    --resync)
+      RESYNC=1
+      shift
+      ;;
+    --browser)
+      if [ $# -lt 2 ]; then
+        echo "ERROR: --browser needs a command." >&2
+        exit 1
+      fi
+      BROWSER_OVERRIDE="$2"
+      shift 2
+      ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "ERROR: unknown option: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
+
+if ! command -v onedrive >/dev/null 2>&1; then
+  echo "ERROR: the onedrive client is not installed." >&2
+  echo "Run: ansible-playbook playbooks/applications/onedrive.yml -K" >&2
+  exit 1
+fi
+
+if [ ! -d "$CONFDIR" ]; then
+  echo "ERROR: ${CONFDIR} does not exist." >&2
+  echo "Run: ansible-playbook playbooks/applications/onedrive.yml -K" >&2
+  exit 1
+fi
+
+AUTHORISING=1
+if [ -f "${CONFDIR}/refresh_token" ] && [ "$REAUTH" -eq 0 ]; then
+  AUTHORISING=0
+fi
+
+if [ "$AUTHORISING" -eq 0 ] && [ "$RESYNC" -eq 0 ]; then
+  echo "The '${ACCOUNT}' account is already authorised."
+  echo
+  echo "  Service:  ${SERVICE}"
+  echo "  Syncs to: ${SYNC_DIR}"
+  echo
+  echo "Re-run with --reauth to bind it to a different account, or with"
+  echo "--resync to rebuild the sync state after a filtering change."
+  exit 0
+fi
+
+if [ "$AUTHORISING" -eq 1 ]; then
+  echo "=== OneDrive sign-in: ${ACCOUNT} ==="
+else
+  echo "=== OneDrive resync: ${ACCOUNT} ==="
+fi
+echo
+echo "  Configuration: ${CONFDIR}"
+echo "  Syncs to:      ${SYNC_DIR}"
+echo
+
+if [ "$AUTHORISING" -eq 0 ]; then
+  cat <<EOF
+The saved sync state will be discarded and rebuilt, which is what makes new
+sync_list rules take effect. The client will ask you to confirm before it
+starts.
+
+This does not delete local files. Anything excluded by the new rules is left
+on disk untouched, simply no longer synchronised.
+EOF
+elif [ "$DEVICE_AUTH" -eq 1 ]; then
+  cat <<EOF
+This account signs in with a device code. A short code is printed below:
+open https://microsoft.com/devicelogin, enter it, and pick the account you
+want this configuration bound to.
+
+Because the account is chosen on that page rather than inherited from a
+browser session, there is no risk of binding the wrong one.
+EOF
+else
+  cat <<EOF
+This account signs in through your browser, which will open automatically.
+
+Take care which account you pick: the sign-in reuses whatever Microsoft
+session the browser already holds, so it can bind a different account without
+asking. If you are signed into another Microsoft account, cancel and re-run as:
+
+    ${0##*/} --reauth --browser firefox
+EOF
+fi
+
+echo
+
+if [ -n "$BROWSER_OVERRIDE" ]; then
+  export BROWSER="$BROWSER_OVERRIDE"
+  echo "Using browser: ${BROWSER}"
+  echo
+fi
+
+# The client allows only one instance per configuration directory. If the
+# background service is already syncing this account it holds that slot, and
+# the foreground sync below would fail with "already running" -- so stop it for
+# the duration and start it again at the end. Matters most for --reauth, which
+# is run against an account that is already up.
+if systemctl --user is-active --quiet "$SERVICE"; then
+  echo "Stopping ${SERVICE} for the duration of the sign-in..."
+  systemctl --user stop "$SERVICE"
+  echo
+fi
+
+if [ "$REAUTH" -eq 1 ]; then
+  echo "Discarding the existing authorisation..."
+  onedrive --confdir="$CONFDIR" --reauth
+  echo
+fi
+
+# --sync performs the authorisation if there is no token yet, then does a
+# one-shot sync and exits, so this both signs in and proves the result works.
+SYNC_ARGS=(--confdir="$CONFDIR" --sync --verbose)
+if [ "$RESYNC" -eq 1 ]; then
+  SYNC_ARGS+=(--resync)
+fi
+
+if [ "$AUTHORISING" -eq 1 ]; then
+  echo "Signing in and running the initial sync..."
+  echo "A large account can take a while; check 'Account Type' in the output"
+  echo "below to confirm the right identity was bound."
+else
+  echo "Rebuilding the sync state..."
+  echo "A large account can take a while."
+fi
+echo
+onedrive "${SYNC_ARGS[@]}"
+
+if [ ! -f "${CONFDIR}/refresh_token" ]; then
+  echo >&2
+  echo "ERROR: sign-in did not complete - no refresh token was written." >&2
+  echo "The service has been left disabled. Fix the sign-in and re-run." >&2
+  exit 1
+fi
+
+echo
+if [ "$AUTHORISING" -eq 1 ]; then
+  echo "Sign-in succeeded. Enabling ${SERVICE}..."
+else
+  echo "Resync complete. Enabling ${SERVICE}..."
+fi
+systemctl --user daemon-reload
+systemctl --user enable --now "$SERVICE"
+
+echo
+systemctl --user --no-pager --lines=0 status "$SERVICE" || true
+
+cat <<EOF
+
+The '${ACCOUNT}' account now syncs in the background.
+
+  Follow the log:  journalctl --user -u ${SERVICE} -f
+  Stop syncing:    systemctl --user disable --now ${SERVICE}
+EOF

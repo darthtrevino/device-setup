@@ -1,0 +1,71 @@
+---
+# The abraunegg OneDrive client, which is what Fedora packages as `onedrive`.
+# Microsoft ships no OneDrive client for Linux, so this is a third-party
+# reimplementation against the Graph API rather than a vendor product.
+
+onedrive_packages:
+  - onedrive
+
+onedrive_systemd_dir: "{{ workstation_config_dir }}/systemd/user"
+
+# Which unit actually runs the sync; set machine-wide in group_vars/all. The
+# default is the client's own unit so that this role stands on its own without
+# the onedrive_tray role installed.
+onedrive_supervisor: client
+
+# The two supervisors are instances of differently named template units, so the
+# account name alone is not enough to address the active one.
+onedrive_unit_prefix: "{{ 'onedrive-tray@' if onedrive_supervisor == 'tray' else 'onedrive@' }}"
+
+# One systemd template unit backs every account; each account is an instance of
+# it. The stock units cannot do this: /usr/lib/systemd/user/onedrive.service is
+# hardcoded to a single config directory, and the packaged template unit
+# onedrive@.service is *system* scope instanced by user name, which solves
+# "many users, one account each" rather than "one user, many accounts".
+onedrive_service_template: onedrive@.service
+
+# Each account gets its own configuration directory, local sync directory and
+# service instance. The directory names follow the client's own convention of
+# ~/.config/onedrive-<name>, so the confdir can be derived from the instance
+# name inside the unit instead of being enumerated per account.
+#
+# Only a personal account is configured. The multi-account plumbing is kept
+# because it costs nothing -- adding an entry here is all a second account
+# needs -- but a Microsoft work account could not be authorised: see the
+# README for the device-code and Intune SSO options if that is revisited.
+#
+# `options` takes any key from the client's configuration file; see
+# /usr/share/doc/onedrive/config for the full list with defaults. Booleans are
+# rendered as the quoted "true"/"false" strings the parser expects.
+onedrive_accounts:
+  - name: personal
+    sync_dir: "{{ workstation_home }}/OneDrive"
+    # Only these paths are synchronised; the rest of the drive is ignored.
+    # Filtering is client-side -- the Graph API has no notion of selective
+    # sync -- so the client still enumerates the whole remote tree on every
+    # run. What this saves is the file transfers, not the enumeration.
+    #
+    # Anchored with slashes so the client matches them as paths. A bare name
+    # makes it scan every folder online and locally looking for a match.
+    sync_list:
+      - /Books/
+      - /Gaming/
+    options:
+      # Loose files sitting at the top of the drive match none of the rules
+      # above and would otherwise be skipped. Enabling this avoids having to
+      # amend sync_list, and force a resync, every time one appears.
+      sync_root_files: true
+
+# Applied to every account, then overridden by anything in an account's own
+# `options`. Notifications are on because a sync client that fails quietly is
+# worse than no sync client, and local logging keeps a record once the journal
+# has rotated away.
+onedrive_common_options:
+  monitor_interval: 300
+  skip_dotfiles: true
+  # Renames rather than overwrites the local copy when both sides changed, so a
+  # conflict costs disk space instead of data.
+  bypass_data_preservation: false
+  # Moves online deletions to the desktop trash instead of deleting them
+  # locally, which makes a bad remote delete recoverable.
+  use_recycle_bin: true
