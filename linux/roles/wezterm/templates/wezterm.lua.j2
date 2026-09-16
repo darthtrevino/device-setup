@@ -25,6 +25,13 @@ config.window_padding = {
   bottom = 4,
 }
 
+{% if not wezterm_confirm_window_close %}
+-- Closing the window discards whatever is running in it without asking.
+-- The mux keeps unattached panes alive, so this is not as destructive as it
+-- looks: a `wezterm connect` session survives the GUI going away.
+config.window_close_confirmation = 'NeverPrompt'
+{% endif %}
+
 {% if wezterm_mux_host %}
 -- Attach to the live GUI mux on {{ wezterm_mux_host }}, so a local tab renders
 -- the same session someone sitting at that machine sees.

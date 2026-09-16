@@ -258,6 +258,13 @@ because that layer composites on top of the already translucent window. Both
 need a compositor, which Plasma on Wayland provides — without one, WezTerm
 simply renders opaque.
 
+Closing a window does not prompt for confirmation. WezTerm's default is to
+ask whenever processes are still running, which is almost always — the shell
+itself counts — so the prompt fired on nearly every close and restart. Set
+`wezterm_confirm_window_close: true` to restore it. Note this governs the
+window only: the `LEADER x` pane binding still confirms, since closing one
+pane of several is easier to do by accident.
+
 ### Default Terminal
 
 The role points KDE at WezTerm, so Dolphin's *Open Terminal* and anything else

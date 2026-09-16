@@ -32,6 +32,11 @@ wezterm_background_opacity: 0.8
 # wezterm_background_opacity to bring a TUI pane back in line with the rest.
 wezterm_text_background_opacity: 0.7
 
+# WezTerm asks for confirmation before closing a window that still has
+# processes running, which fires on nearly every close because the shell
+# itself counts. Turned off; the mux keeps unattached panes alive regardless.
+wezterm_confirm_window_close: false
+
 # Plasma ships no default terminal, so KIO falls back to konsole. KIO's
 # terminal launcher prefers TerminalService, a desktop file that also carries
 # the name and icon shown in System Settings, and only falls back to
