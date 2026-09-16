@@ -9,11 +9,16 @@ voxtype_rpm_url: >-
 # Fedora, so typing goes through wtype and falls back to the clipboard.
 # pipewire-alsa is required: without it capture fails with "device not
 # available".
+# gtk4-layer-shell is needed by the on-screen display, which the release RPM
+# ships but does not declare a dependency on: without it voxtype-osd-gtk4
+# cannot resolve libgtk4-layer-shell.so.0, and the daemon gives up after the
+# OSD child crashes three times.
 voxtype_packages:
   - wtype
   - wl-clipboard
   - libnotify
   - pipewire-alsa
+  - gtk4-layer-shell
 
 voxtype_model: base.en
 voxtype_language: en
