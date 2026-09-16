@@ -28,15 +28,20 @@ ansible-playbook playbooks/workstation.yml -K --check --diff
 ```
 
 On a machine running face authentication, `pam_gaze` runs ahead of sudo's
-password prompt, and a scan that finds no face costs around eight seconds.
-`inventory.ini` raises `ansible_local_become_success_timeout` to absorb that;
-without it, escalating tasks intermittently fail as `UNREACHABLE` with *Timed
-out waiting for become success*. Authenticating once up front is quicker still,
-since a cached sudo timestamp skips the camera entirely — note the absent `-K`:
+password prompt, and a scan that fails costs anywhere from a fraction of a
+second (camera busy) to around eight seconds (no face found).
+`inventory.ini` raises `ansible_local_become_success_timeout` to absorb the
+slow case; without it, escalating tasks intermittently fail as `UNREACHABLE`
+with *Timed out waiting for become success*.
 
-```bash
-sudo -v && ansible-playbook playbooks/workstation.yml
-```
+**Always pass `-K`.** It is tempting to warm a sudo timestamp first and drop
+the flag, but that is a trap: Fedora scopes timestamps per tty
+(`timestamp_type=tty`) and expires them after five minutes, so a long run
+outlives its own credential. When the timestamp lapses mid-run, sudo
+prompts, Ansible has no password to answer with, and `pam_gaze` fails on the
+retry — surfacing as *Duplicate become password prompt encountered* rather
+than a prompt anyone can respond to. With `-K`, a failed face scan simply
+falls through to the password Ansible is already holding.
 
 ## Layout
 
