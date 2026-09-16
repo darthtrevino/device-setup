@@ -29,6 +29,7 @@
     - task
     - tealdeer
     - bottom
+    - binsider
     - shellcheck
     - yt_dlp
     - starship

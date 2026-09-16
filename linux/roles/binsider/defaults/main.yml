@@ -1,0 +1,23 @@
+---
+# A terminal UI for taking ELF binaries apart: headers, sections, symbols,
+# strings, dynamic libraries and a live syscall trace.
+#
+# Fedora does not package it and upstream publishes no dnf repository, only
+# release tarballs, so it is fetched and unpacked directly rather than through
+# a repository as most roles here prefer.
+binsider_repo: orhun/binsider
+binsider_version: latest
+binsider_install_dir: /usr/local/bin
+
+# x86_64 glibc, matching this repo's only supported target. Upstream also ships
+# musl and other architectures.
+binsider_archive_name: binsider-{{ binsider_resolved_version }}-x86_64-unknown-linux-gnu.tar.gz
+binsider_archive_url: >-
+  https://github.com/{{ binsider_repo }}/releases/download/v{{ binsider_resolved_version }}/{{ binsider_archive_name }}
+
+# Upstream publishes a SHA-512 sidecar beside every asset. get_url is pointed
+# at the URL rather than a literal digest so the checksum does not have to be
+# updated by hand each time the resolved version moves.
+binsider_checksum: sha512:{{ binsider_archive_url }}.sha512
+
+binsider_download_path: /var/cache/{{ binsider_archive_name }}

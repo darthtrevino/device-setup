@@ -73,6 +73,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | Role | Description |
 |------|-------------|
 | `bashrcd` | Ensures `~/.bashrc.d` exists and is sourced by `~/.bashrc` |
+| `binsider` | Installs [binsider](https://github.com/orhun/binsider) for analysing ELF binaries |
 | `bitwarden` | Installs Bitwarden from Flathub |
 | `bottom` | Installs [bottom](https://github.com/ClementTsang/bottom) from the latest upstream release RPM |
 | `calibre` | Installs the Calibre e-book library manager |
