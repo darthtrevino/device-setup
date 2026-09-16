@@ -20,14 +20,17 @@
     - github_cli
     - github_copilot_cli
     - github_copilot_app
+    - gitui
     - herdr
     - vim
     - jq
     - just
+    - ripgrep
     - task
     - tealdeer
     - bottom
     - shellcheck
+    - yt_dlp
     - starship
 
     # ── Remote access ──
@@ -53,6 +56,7 @@
     # ── Desktop applications ──
     - wezterm
     - vscode
+    - calibre
     - discord
     - steam
     - bitwarden

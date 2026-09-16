@@ -1,0 +1,6 @@
+---
+- name: Install Calibre
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - calibre

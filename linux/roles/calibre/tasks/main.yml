@@ -1,0 +1,6 @@
+---
+- name: Install Calibre
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ calibre_packages }}"
+    state: present

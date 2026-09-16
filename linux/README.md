@@ -75,6 +75,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `bashrcd` | Ensures `~/.bashrc.d` exists and is sourced by `~/.bashrc` |
 | `bitwarden` | Installs Bitwarden from Flathub |
 | `bottom` | Installs [bottom](https://github.com/ClementTsang/bottom) from the latest upstream release RPM |
+| `calibre` | Installs the Calibre e-book library manager |
 | `catppuccin_gnome_terminal` | Installs the Catppuccin GNOME Terminal profiles and defaults to Mocha |
 | `discord` | Installs Discord from Flathub |
 | `dnf_automatic` | Applies package updates unattended on a daily timer |
@@ -85,6 +86,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `github_cli` | Installs GitHub CLI from Fedora's package repository |
 | `github_copilot_cli` | Installs the native GitHub Copilot CLI |
 | `github_copilot_app` | Installs the GitHub Copilot desktop app from GitHub's release RPM |
+| `gitui` | Installs the [gitui](https://github.com/gitui-org/gitui) terminal UI for Git |
 | `golang` | Installs the latest Go toolchain into `/usr/local/go` |
 | `herdr` | Installs the [herdr](https://github.com/herdrdev/herdr) coding-agent runtime and the Omarchy keybinding profile |
 | `jetbrains_mono` | Installs the JetBrainsMono Nerd Font |
@@ -97,6 +99,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `no_notifications` | Disables GNOME event sounds |
 | `nvm` | Installs Node Version Manager and Bash integration |
 | `podman` | Installs **rootless** Podman and exposes a Docker-compatible socket |
+| `ripgrep` | Installs [ripgrep](https://github.com/BurntSushi/ripgrep) (`rg`) |
 | `rpmfusion` | Enables the RPM Fusion free and nonfree repositories |
 | `rust` | Installs Rust via rustup and keeps toolchains updated |
 | `shellcheck` | Installs ShellCheck for linting this repo's shell scripts |
@@ -114,6 +117,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `wallpaper_randomizer` | Selects a random KDE wallpaper at startup and every 15 minutes |
 | `wezterm` | Installs [WezTerm](https://wezterm.org) and its Lua configuration |
 | `ydotool` | Runs the ydotool daemon so dictated text can be typed into the focused window |
+| `yt_dlp` | Installs [yt-dlp](https://github.com/yt-dlp/yt-dlp) for downloading media |
 | `zen_browser` | Installs [Zen Browser](https://zen-browser.app) to `/opt/zen` |
 | `zen_browser_extensions` | Downloads extension XPIs into the Zen install |
 | `zen_browser_policies` | Renders Zen's `policies.json` enterprise policy |
@@ -133,6 +137,7 @@ herdr                                         ->  workstation
 voxtype                                       ->  workstation, ydotool
 ydotool                                       ->  workstation
 github_copilot_app                            ->  git
+gitui                                         ->  git
 starship, wezterm                            ->  nerd_fonts_hack
 bitwarden, discord, spotify                  ->  flatpak
 steam                                        ->  rpmfusion
