@@ -121,8 +121,11 @@
       changed_when: true
 
     # Flag 4 is NoAutoloading: set this key sequence rather than reloading
-    # whatever was stored previously.
-    - name: Bind the Voxtype shortcut to {{ voxtype_shortcut }}
+    # whatever was stored previously. The key combination is deliberately not
+    # interpolated into the task name -- this task is usually skipped, and
+    # profile_tasks prints the names of skipped tasks too, which made the
+    # recap look as though a binding had been made.
+    - name: Bind the Voxtype global shortcut
       ansible.builtin.command:
         argv:
           - gdbus
