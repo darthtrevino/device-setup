@@ -21,7 +21,9 @@ param(
     [string]$GitName,
     [string]$GitEmail,
     [string]$ProfilePath = $PROFILE.CurrentUserCurrentHost,
-    [switch]$SkipVSCodeExtensions
+    [switch]$SkipVSCodeExtensions,
+    # Skip devbox/auth.ps1 (gh logins + EMU/GHE.com git routing).
+    [switch]$SkipAuth
 )
 
 $ErrorActionPreference = 'Stop'
@@ -113,6 +115,11 @@ if (-not $SkipVSCodeExtensions) {
     } else {
         Write-Warning 'VS Code CLI (code) not found; skipping extensions.'
     }
+}
+
+# --- GitHub accounts --------------------------------------------------------------------------
+if (-not $SkipAuth) {
+    & (Join-Path $root 'auth.ps1')
 }
 
 Write-Host 'Bootstrap complete. Restart your terminal to load the new profile.'

@@ -4,3 +4,6 @@
 	email = 113544+darthtrevino@users.noreply.github.com
 [credential "https://github.com"]
 	username = darthtrevino
+	# Ask gh for this account's token specifically, regardless of which gh account is active.
+	helper =
+	helper = "!f() { [ \"$1\" = get ] || exit 0; t=$('C:/Program Files/GitHub CLI/gh.exe' auth token -h github.com -u darthtrevino) || exit 0; echo username=darthtrevino; echo password=$t; }; f"
