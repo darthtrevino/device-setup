@@ -1,0 +1,284 @@
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
+#
+# Dev workstation desired state.
+#   Apply:  winget configure -f devbox\machine.dsc.winget --accept-configuration-agreements
+#   Check:  winget configure test -f devbox\machine.dsc.winget
+#
+# Generated from a `winget export` of the source machine plus its Windows settings.
+#
+# Intentionally NOT installed here:
+#   Framework / dependency packages (pulled in automatically by the apps that need them):
+#     Microsoft.AppInstaller, Microsoft.UI.Xaml.2.7, Microsoft.UI.Xaml.2.8, Microsoft.VCLibs.14,
+#     Microsoft.VCLibs.Desktop.14, Microsoft.WindowsAppRuntime.1.5/1.6/1.7/1.8/2,
+#     Microsoft.DotNet.Native.Runtime, Microsoft.Edge (inbox)
+#   Organization-managed agents (deployed by Intune / AVD on corporate devices):
+#     Microsoft.VSTOR, Microsoft.WindowsVirtualDesktopAgent, Microsoft.WindowsVirtualDesktopBootloader,
+#     Microsoft.AzureMonitorAgent, Microsoft.RemoteDesktopMMRService, Microsoft.RemoteHelp,
+#     Microsoft.GlobalSecureAccessClient, Okta.OktaVerify
+#   Microsoft 365 apps (licensed / usually org-deployed) - copy a WinGetPackage block below to opt in:
+#     Microsoft.Office, Microsoft.Outlook, Microsoft.Teams, Microsoft.365Copilot, Microsoft.OneDrive
+
+properties:
+  configurationVersion: 0.2.0
+
+  assertions:
+    - resource: Microsoft.Windows.Developer/OsVersion
+      directives: { description: "Require Windows 11", allowPrerelease: true }
+      settings: { MinVersion: "10.0.22000" }
+
+  resources:
+    # ---------------------------------------------------------------- Windows settings
+    - resource: Microsoft.Windows.Developer/DeveloperMode
+      directives: { description: "Enable Developer Mode", allowPrerelease: true, securityContext: elevated }
+      settings: { Ensure: Present }
+
+    - resource: Microsoft.Windows.Developer/EnableLongPathSupport
+      directives: { description: "Enable Win32 long paths", allowPrerelease: true, securityContext: elevated }
+      settings: { Ensure: Present }
+
+    - resource: Microsoft.Windows.Developer/EnableDarkMode
+      directives: { description: "Dark mode for apps and system", allowPrerelease: true }
+      settings: { Ensure: Present }
+
+    - resource: Microsoft.Windows.Developer/WindowsExplorer
+      directives: { description: "Show file extensions", allowPrerelease: true }
+      settings: { FileExtensions: Show, HiddenFiles: Hide }
+
+    - resource: PSDscResources/Registry
+      directives: { description: "Enable sudo for Windows (new window mode)", securityContext: elevated }
+      settings:
+        Key: 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Sudo'
+        ValueName: Enabled
+        ValueType: Dword
+        ValueData: '1'
+        Force: true
+
+    - resource: PSDscResources/Registry
+      directives: { description: "Windows PowerShell 5.1 execution policy: RemoteSigned", securityContext: elevated }
+      settings:
+        Key: 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell'
+        ValueName: ExecutionPolicy
+        ValueType: String
+        ValueData: RemoteSigned
+        Force: true
+
+    # ---------------------------------------------------------------- Shell & source control
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "PowerShell 7", securityContext: elevated }
+      settings: { id: "Microsoft.PowerShell", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Windows Terminal", securityContext: elevated }
+      settings: { id: "Microsoft.WindowsTerminal", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: ohMyPosh
+      directives: { description: "Oh My Posh", securityContext: elevated }
+      settings: { id: "JanDeDobbeleer.OhMyPosh", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Git", securityContext: elevated }
+      settings: { id: "Git.Git", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "GitHub CLI", securityContext: elevated }
+      settings: { id: "GitHub.cli", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "TortoiseGit", securityContext: elevated }
+      settings: { id: "TortoiseGit.TortoiseGit", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: wsl
+      directives: { description: "Windows Subsystem for Linux", securityContext: elevated }
+      settings: { id: "Microsoft.WSL", source: winget }
+
+    # ---------------------------------------------------------------- Editors & IDEs
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Visual Studio Code", securityContext: elevated }
+      settings: { id: "Microsoft.VisualStudioCode", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Visual Studio Code Insiders", securityContext: elevated }
+      settings: { id: "Microsoft.VisualStudioCode.Insiders", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: visualStudio
+      directives: { description: "Visual Studio 2026 Enterprise", securityContext: elevated }
+      settings: { id: "Microsoft.VisualStudio.Enterprise", source: winget }
+
+    - resource: Microsoft.VisualStudio.DSC/VSComponents
+      dependsOn: [visualStudio]
+      directives: { description: "Visual Studio workloads and components", allowPrerelease: true, securityContext: elevated }
+      settings:
+        productId: Microsoft.VisualStudio.Product.Enterprise
+        channelId: VisualStudio.18.Release
+        vsConfigFile: '${WinGetConfigRoot}\visualstudio.vsconfig'
+        includeRecommended: false
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "ILSpy", securityContext: elevated }
+      settings: { id: "icsharpcode.ILSpy", source: winget }
+
+    # ---------------------------------------------------------------- AI tooling
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "GitHub Copilot CLI", securityContext: elevated }
+      settings: { id: "GitHub.Copilot", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "GitHub Copilot app", securityContext: elevated }
+      settings: { id: "GitHub.CopilotApp", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Claude Code", securityContext: elevated }
+      settings: { id: "Anthropic.ClaudeCode", source: winget }
+
+    # ---------------------------------------------------------------- Languages, SDKs & runtimes
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: ".NET 10 SDK", securityContext: elevated }
+      settings: { id: "Microsoft.DotNet.SDK.10", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: ".NET 10 Desktop Runtime", securityContext: elevated }
+      settings: { id: "Microsoft.DotNet.DesktopRuntime.10", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Windows SDK 10.0.26100", securityContext: elevated }
+      settings: { id: "Microsoft.WindowsSDK.10.0.26100", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Node.js LTS", securityContext: elevated }
+      settings: { id: "OpenJS.NodeJS.LTS", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "pnpm", securityContext: elevated }
+      settings: { id: "pnpm.pnpm", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Python 3.12", securityContext: elevated }
+      settings: { id: "Python.Python.3.12", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Python Launcher (py.exe)", securityContext: elevated }
+      settings: { id: "Python.Launcher", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Rustup", securityContext: elevated }
+      settings: { id: "Rustlang.Rustup", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Visual C++ 2015+ Redistributable (x64)", securityContext: elevated }
+      settings: { id: "Microsoft.VCRedist.2015+.x64", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Visual C++ 2015+ Redistributable (x86)", securityContext: elevated }
+      settings: { id: "Microsoft.VCRedist.2015+.x86", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Visual C++ 2010 Redistributable (x64)", securityContext: elevated }
+      settings: { id: "Microsoft.VCRedist.2010.x64", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Visual C++ 2010 Redistributable (x86)", securityContext: elevated }
+      settings: { id: "Microsoft.VCRedist.2010.x86", source: winget }
+
+    # ---------------------------------------------------------------- CLI utilities
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "ripgrep", securityContext: elevated }
+      settings: { id: "BurntSushi.ripgrep.MSVC", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "typos spell checker", securityContext: elevated }
+      settings: { id: "Crate-CI.Typos", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Glow markdown viewer", securityContext: elevated }
+      settings: { id: "charmbracelet.glow", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Task (taskfile.yml runner)", securityContext: elevated }
+      settings: { id: "Task.Task", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Dev Tunnels CLI", securityContext: elevated }
+      settings: { id: "Microsoft.devtunnel", source: winget }
+
+    # ---------------------------------------------------------------- Cloud & data
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Azure CLI", securityContext: elevated }
+      settings: { id: "Microsoft.AzureCLI", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Azure Storage Explorer", securityContext: elevated }
+      settings: { id: "Microsoft.Azure.StorageExplorer", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Azure VPN Client", securityContext: elevated }
+      settings: { id: "Microsoft.AzureVPNClient", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Web Deploy", securityContext: elevated }
+      settings: { id: "Microsoft.WebDeploy", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "ODBC Driver 17 for SQL Server", securityContext: elevated }
+      settings: { id: "Microsoft.msodbcsql.17", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "SQL Server 2019 CLR Types", securityContext: elevated }
+      settings: { id: "Microsoft.CLRTypesSQLServer.2019", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "DB Browser for SQLite", securityContext: elevated }
+      settings: { id: "DBBrowserForSQLite.DBBrowserForSQLite", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Tad (tabular data viewer)", securityContext: elevated }
+      settings: { id: "AntonyCourtney.Tad", source: winget }
+
+    # ---------------------------------------------------------------- Desktop apps
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "Gephi", securityContext: elevated }
+      settings: { id: "Gephi.Gephi", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "MiKTeX", securityContext: elevated }
+      settings: { id: "MiKTeX.MiKTeX", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "WinDirStat", securityContext: elevated }
+      settings: { id: "WinDirStat.WinDirStat", source: winget }
+
+    # ---------------------------------------------------------------- Post-install setup
+    - resource: PSDscResources/Script
+      dependsOn: [wsl]
+      directives: { description: "Install the Ubuntu WSL distribution", securityContext: elevated }
+      settings:
+        GetScript: |
+          $env:WSL_UTF8 = '1'
+          @{ Result = ((wsl.exe --list --quiet 2>$null) -join ',') }
+        TestScript: |
+          $env:WSL_UTF8 = '1'
+          [bool](wsl.exe --list --quiet 2>$null | Where-Object { $_.Trim() -eq 'Ubuntu' })
+        SetScript: |
+          wsl.exe --install --distribution Ubuntu --no-launch
+
+    - resource: PSDscResources/Script
+      dependsOn: [ohMyPosh]
+      directives: { description: "Install Meslo Nerd Font (used by Oh My Posh / Windows Terminal)" }
+      settings:
+        GetScript: |
+          $fonts = Get-ChildItem "$env:WINDIR\Fonts", "$env:LOCALAPPDATA\Microsoft\Windows\Fonts" -Filter 'MesloLG*NerdFont*' -ErrorAction SilentlyContinue
+          @{ Result = ($fonts.Name -join ',') }
+        TestScript: |
+          [bool](Get-ChildItem "$env:WINDIR\Fonts", "$env:LOCALAPPDATA\Microsoft\Windows\Fonts" -Filter 'MesloLG*NerdFont*' -ErrorAction SilentlyContinue)
+        SetScript: |
+          $omp = (Get-Command oh-my-posh -ErrorAction SilentlyContinue).Source
+          if (-not $omp) {
+            $omp = @(
+              "$env:LOCALAPPDATA\Microsoft\WindowsApps\oh-my-posh.exe",
+              "$env:LOCALAPPDATA\Programs\oh-my-posh\bin\oh-my-posh.exe"
+            ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          }
+          if (-not $omp) { throw 'oh-my-posh executable not found' }
+          & $omp font install Meslo
