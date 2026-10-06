@@ -1,5 +1,6 @@
 # Template for ~/.gitconfig.local (machine/identity-specific; not committed).
 # bootstrap.ps1 creates the file and fills in [user]; add org sections by hand.
+# [user] is the default identity; repos with a github.com remote use gitconfig.darthtrevino instead.
 [user]
 	name = Your Name
 	email = you@example.com

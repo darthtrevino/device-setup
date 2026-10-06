@@ -86,6 +86,7 @@ if (-not (Test-Path -LiteralPath $gitLocal)) {
 
 # --- dotfiles ---------------------------------------------------------------------------------
 Install-Dotfile 'gitconfig' (Join-Path $env:USERPROFILE '.gitconfig')
+Install-Dotfile 'gitconfig.darthtrevino' (Join-Path $env:USERPROFILE '.gitconfig.darthtrevino')
 Install-Dotfile 'omp.json' (Join-Path $env:USERPROFILE 'omp.json')
 Install-Dotfile 'powershell-profile.ps1' $ProfilePath
 Install-Dotfile 'vscode-settings.json' (Join-Path $env:APPDATA 'Code\User\settings.json')

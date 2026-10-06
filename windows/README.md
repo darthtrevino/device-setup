@@ -12,6 +12,7 @@ devbox/
 ├── powershell-profile.ps1          # -> $PROFILE (PowerShell 7)
 ├── omp.json                        # -> ~/omp.json (Oh My Posh theme)
 ├── gitconfig                       # -> ~/.gitconfig (includes ~/.gitconfig.local)
+├── gitconfig.darthtrevino          # -> ~/.gitconfig.darthtrevino (identity for github.com remotes)
 ├── gitconfig.local.example         # template for ~/.gitconfig.local (identity, org credentials)
 ├── vscode-settings.json            # -> %APPDATA%\Code\User\settings.json
 ├── vscode-extensions.txt           # installed by bootstrap.ps1

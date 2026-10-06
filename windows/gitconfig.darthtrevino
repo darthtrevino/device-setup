@@ -1,0 +1,6 @@
+# Public GitHub identity, applied to repos with a github.com remote (see includeIf in gitconfig).
+[user]
+	name = Chris Trevino
+	email = 113544+darthtrevino@users.noreply.github.com
+[credential "https://github.com"]
+	username = darthtrevino

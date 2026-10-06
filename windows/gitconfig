@@ -1,4 +1,4 @@
-# Shared git settings. Identity and org-specific credentials live in ~/.gitconfig.local
+# Shared git settings. The default identity and org-specific credentials live in ~/.gitconfig.local
 # (created by bootstrap.ps1 from gitconfig.local.example; never committed).
 [credential "https://github.com"]
 	helper =
@@ -8,5 +8,13 @@
 	helper = !'C:\\Program Files\\GitHub CLI\\gh.exe' auth git-credential
 [core]
 	longpaths = true
+
+# Later includes win: default identity first, then per-remote identities.
 [include]
 	path = ~/.gitconfig.local
+[includeIf "hasconfig:remote.*.url:https://github.com/**"]
+	path = ~/.gitconfig.darthtrevino
+[includeIf "hasconfig:remote.*.url:git@github.com:*/**"]
+	path = ~/.gitconfig.darthtrevino
+[includeIf "hasconfig:remote.*.url:ssh://git@github.com/**"]
+	path = ~/.gitconfig.darthtrevino
