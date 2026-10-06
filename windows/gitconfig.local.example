@@ -1,0 +1,18 @@
+# Template for ~/.gitconfig.local (machine/identity-specific; not committed).
+# bootstrap.ps1 creates the file and fills in [user]; add org sections by hand.
+[user]
+	name = Your Name
+	email = you@example.com
+
+# Azure Repos via Git Credential Manager - one block per organization:
+# [credential "azrepos:org/<organization>"]
+# 	azureAuthority = https://login.microsoftonline.com/<tenant-id>
+# 	username = you@example.com
+
+# GitHub Enterprise Cloud with data residency (*.ghe.com):
+# [credential "https://<enterprise>.ghe.com"]
+# 	provider = github
+
+# Repositories owned by another user (e.g. inside WSL):
+# [safe]
+# 	directory = //wsl.localhost/Ubuntu/home/<user>/<repo>

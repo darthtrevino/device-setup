@@ -1,0 +1,12 @@
+# Shared git settings. Identity and org-specific credentials live in ~/.gitconfig.local
+# (created by bootstrap.ps1 from gitconfig.local.example; never committed).
+[credential "https://github.com"]
+	helper =
+	helper = !'C:\\Program Files\\GitHub CLI\\gh.exe' auth git-credential
+[credential "https://gist.github.com"]
+	helper =
+	helper = !'C:\\Program Files\\GitHub CLI\\gh.exe' auth git-credential
+[core]
+	longpaths = true
+[include]
+	path = ~/.gitconfig.local
