@@ -6,6 +6,10 @@
 #
 # Generated from a `winget export` of the source machine plus its Windows settings.
 #
+# Optional add-on configurations (apply after this one, only when wanted):
+#   devbox\optional\visualstudio.dsc.winget  Visual Studio 2026 Enterprise + workloads (visualstudio.vsconfig)
+#   devbox\optional\physical.dsc.winget      Physical hardware only (not Dev Box / cloud PCs): Windows App
+#
 # Intentionally NOT installed here:
 #   Framework / dependency packages (pulled in automatically by the apps that need them):
 #     Microsoft.AppInstaller, Microsoft.UI.Xaml.2.7, Microsoft.UI.Xaml.2.8, Microsoft.VCLibs.14,
@@ -103,20 +107,6 @@ properties:
       settings: { id: "Microsoft.VisualStudioCode.Insiders", source: winget }
 
     - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: visualStudio
-      directives: { description: "Visual Studio 2026 Enterprise", securityContext: elevated }
-      settings: { id: "Microsoft.VisualStudio.Enterprise", source: winget }
-
-    - resource: Microsoft.VisualStudio.DSC/VSComponents
-      dependsOn: [visualStudio]
-      directives: { description: "Visual Studio workloads and components", allowPrerelease: true, securityContext: elevated }
-      settings:
-        productId: Microsoft.VisualStudio.Product.Enterprise
-        channelId: VisualStudio.18.Release
-        vsConfigFile: '${WinGetConfigRoot}\visualstudio.vsconfig'
-        includeRecommended: false
-
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
       directives: { description: "ILSpy", securityContext: elevated }
       settings: { id: "icsharpcode.ILSpy", source: winget }
 
@@ -161,6 +151,10 @@ properties:
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       directives: { description: "Python Launcher (py.exe)", securityContext: elevated }
       settings: { id: "Python.Launcher", source: winget }
+
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "uv (Python package and project manager)", securityContext: elevated }
+      settings: { id: "astral-sh.uv", source: winget }
 
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       directives: { description: "Rustup", securityContext: elevated }
@@ -237,6 +231,10 @@ properties:
       settings: { id: "AntonyCourtney.Tad", source: winget }
 
     # ---------------------------------------------------------------- Desktop apps
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      directives: { description: "PowerToys", securityContext: elevated }
+      settings: { id: "Microsoft.PowerToys", source: winget }
+
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       directives: { description: "Gephi", securityContext: elevated }
       settings: { id: "Gephi.Gephi", source: winget }

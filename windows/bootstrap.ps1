@@ -2,7 +2,7 @@
 <#
 .SYNOPSIS
     Links the dotfiles in this folder into place and runs post-install setup.
-    Run after `winget configure -f devbox\machine.dsc.winget`.
+    Run after `winget configure -f devbox\machine.dsc.winget` (and any devbox\optional\*.dsc.winget add-ons).
 
 .DESCRIPTION
     Existing files are moved to <file>.<timestamp>.bak before linking.
