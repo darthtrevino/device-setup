@@ -1,0 +1,38 @@
+---
+- name: Ensure the local binary directory exists
+  ansible.builtin.file:
+    path: "{{ herdr_install_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Read the currently installed herdr version
+  ansible.builtin.command:
+    cmd: "{{ herdr_binary }} --version"
+  register: herdr_installed
+  changed_when: false
+  check_mode: false
+  failed_when: false
+
+# get_url alone would never upgrade, because it leaves an existing destination
+# untouched; gating on the reported version makes a version bump take effect.
+- name: Install herdr
+  ansible.builtin.get_url:
+    url: "{{ herdr_release_url }}"
+    dest: "{{ herdr_binary }}"
+    mode: "0755"
+    force: true
+  when: herdr_version | regex_replace('^v', '') not in (herdr_installed.stdout | default(''))
+
+- name: Ensure the herdr configuration directory exists
+  ansible.builtin.file:
+    path: "{{ herdr_config_dir }}"
+    state: directory
+    mode: "0755"
+  when: herdr_configure_keybindings | bool
+
+- name: Install the Omarchy keybinding profile
+  ansible.builtin.template:
+    src: config.toml.j2
+    dest: "{{ herdr_config_dir }}/config.toml"
+    mode: "0644"
+  when: herdr_configure_keybindings | bool

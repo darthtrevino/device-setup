@@ -1,0 +1,41 @@
+---
+- name: Import the Microsoft package signing key
+  become: true
+  ansible.builtin.rpm_key:
+    key: "{{ microsoft_edge_gpg_key_url }}"
+    state: present
+
+- name: Configure the Microsoft Edge dnf repository
+  become: true
+  ansible.builtin.yum_repository:
+    name: microsoft-edge
+    description: Microsoft Edge
+    baseurl: "{{ microsoft_edge_repo_baseurl }}"
+    enabled: true
+    gpgcheck: true
+    gpgkey: "{{ microsoft_edge_gpg_key_url }}"
+
+- name: Install Microsoft Edge
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ microsoft_edge_package }}"
+    state: present
+
+- name: Ensure the Microsoft Edge policy directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ microsoft_edge_policy_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install the Microsoft Edge extension policy
+  become: true
+  ansible.builtin.template:
+    src: extensions.json.j2
+    dest: "{{ microsoft_edge_policy_dir }}/extensions.json"
+    owner: root
+    group: root
+    mode: "0644"
+    validate: "python3 -c 'import json,sys; json.load(open(sys.argv[1]))' %s"

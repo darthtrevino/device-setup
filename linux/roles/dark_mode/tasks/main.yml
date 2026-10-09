@@ -1,0 +1,40 @@
+---
+# The GTK backend is what reads org.gnome.desktop.interface color-scheme. It
+# ships with the Cinnamon spin, but the portal override below is useless
+# without it, so assert it rather than assume it.
+- name: Install the GTK desktop portal backend
+  ansible.builtin.dnf:
+    name: xdg-desktop-portal-gtk
+    state: present
+  become: true
+
+- name: Read the current colour scheme
+  ansible.builtin.command:
+    cmd: gsettings get org.gnome.desktop.interface color-scheme
+  register: dark_mode_current
+  changed_when: false
+  check_mode: false
+  failed_when: false
+
+- name: Set the colour scheme to dark
+  ansible.builtin.command:
+    cmd: gsettings set org.gnome.desktop.interface color-scheme {{ dark_mode_color_scheme }}
+  changed_when: true
+  when:
+    - dark_mode_current.rc == 0
+    - dark_mode_current.stdout | trim | trim("'") != dark_mode_color_scheme
+
+- name: Ensure the portal configuration directory exists
+  ansible.builtin.file:
+    path: "{{ workstation_config_dir }}/xdg-desktop-portal"
+    state: directory
+    mode: "0755"
+
+# Cinnamon's own config prefers the xapp backend for every interface, and xapp
+# reports "no preference" for the colour scheme no matter what is configured.
+- name: Route the Settings portal to the GTK backend
+  ansible.builtin.template:
+    src: portals.conf.j2
+    dest: "{{ workstation_config_dir }}/xdg-desktop-portal/portals.conf"
+    mode: "0644"
+  notify: Restart the desktop portal

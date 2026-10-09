@@ -1,0 +1,3 @@
+---
+github_copilot_cli_prefix: "{{ workstation_home }}/.local"
+github_copilot_cli_binary: "{{ github_copilot_cli_prefix }}/bin/copilot"

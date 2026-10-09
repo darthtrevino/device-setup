@@ -1,0 +1,28 @@
+# Fedora addendum to ZSA's 50-zsa.rules -- kept in a separate file so the
+# vendor rules stay byte-identical to the ones published at
+# https://blog.zsa.io/setting-up-zsa-udev-rules/ and remain easy to re-diff
+# when ZSA revises them.
+#
+# ZSA's rules grant access via the "plugdev" group, which is a Debian
+# convention: Fedora ships no such group, and group membership only takes
+# effect on the next login anyway. systemd's "uaccess" tag is the native
+# mechanism here -- 73-seat-late.rules turns it into an ACL for whoever is
+# currently logged in at the local seat, applied the moment the device
+# appears and revoked when they log out. This is what already gives this
+# user access to Yubikeys and game controllers.
+#
+# Must sort before 73-seat-late.rules, which is what consumes the tag.
+
+# WebHID access from a browser (Oryx web flashing and live training).
+KERNEL=="hidraw*", ATTRS{idVendor}=="3297", TAG+="uaccess"
+KERNEL=="hidraw*", ATTRS{idVendor}=="16c0", TAG+="uaccess"
+KERNEL=="hidraw*", ATTRS{idVendor}=="feed", TAG+="uaccess"
+
+# WebUSB access to the keyboard itself.
+SUBSYSTEM=="usb", ATTR{idVendor}=="3297", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTR{idVendor}=="feed", TAG+="uaccess"
+
+# The STM32 DFU bootloader the Moonlander re-enumerates as while flashing.
+# It disconnects and returns under a different vendor/product ID mid-flash,
+# so this needs its own rule or the write half of the flash fails.
+SUBSYSTEM=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="df11", TAG+="uaccess"

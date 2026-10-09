@@ -1,0 +1,6 @@
+---
+- name: Install GitHub CLI
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - github_cli

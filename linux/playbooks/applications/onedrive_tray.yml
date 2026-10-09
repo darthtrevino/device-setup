@@ -1,0 +1,6 @@
+---
+- name: Install the OneDrive system tray icon
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - onedrive_tray

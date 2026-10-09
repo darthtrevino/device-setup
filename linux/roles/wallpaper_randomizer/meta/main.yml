@@ -1,0 +1,4 @@
+---
+dependencies:
+  # Supplies workstation_home and workstation_local_bin.
+  - role: workstation

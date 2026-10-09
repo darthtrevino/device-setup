@@ -1,0 +1,14 @@
+---
+- name: Install Flatpak
+  become: true
+  ansible.builtin.dnf:
+    name: flatpak
+    state: present
+
+- name: Enable the system-wide Flathub remote
+  become: true
+  community.general.flatpak_remote:
+    name: "{{ flatpak_flathub_remote_name }}"
+    flatpakrepo_url: "{{ flatpak_flathub_repo_url }}"
+    method: system
+    state: present

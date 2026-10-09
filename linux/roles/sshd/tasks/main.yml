@@ -1,0 +1,32 @@
+---
+- name: Install the OpenSSH server
+  become: true
+  ansible.builtin.dnf:
+    name: openssh-server
+    state: present
+  # A no-op on Fedora Workstation, which ships this already — it is here so
+  # the role also works on minimal and netinstall spins, where it is absent.
+
+- name: Enable and start sshd
+  become: true
+  ansible.builtin.systemd_service:
+    name: "{{ sshd_service }}"
+    enabled: "{{ sshd_enabled | bool }}"
+    state: "{{ sshd_state }}"
+
+- name: Gather service facts to see whether firewalld is running
+  ansible.builtin.service_facts:
+  when: sshd_manage_firewall | bool
+
+# Applied to the default zone rather than a hardcoded one, since Fedora
+# Workstation and Server do not agree on what that zone is called.
+- name: Allow SSH through firewalld
+  become: true
+  ansible.posix.firewalld:
+    service: ssh
+    permanent: true
+    immediate: true
+    state: enabled
+  when:
+    - sshd_manage_firewall | bool
+    - ansible_facts.services['firewalld.service'].state | default('') == 'running'

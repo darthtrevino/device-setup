@@ -1,0 +1,12 @@
+---
+# yt-dlp breaks whenever a site changes its extraction internals, so a stale
+# copy is a broken copy rather than merely an old one. Fedora tracks upstream
+# closely and the dnf_automatic role applies updates daily, which keeps it
+# current; note that `yt-dlp -U` cannot self-update a distro-packaged install.
+#
+# ffmpeg is deliberately not listed. yt-dlp needs it to merge the separate
+# video and audio streams sites hand out above 720p, but Fedora installs
+# ffmpeg-free by default and RPM Fusion's fuller ffmpeg replaces it -- naming
+# either one here would fight that swap on every run.
+yt_dlp_packages:
+  - yt-dlp

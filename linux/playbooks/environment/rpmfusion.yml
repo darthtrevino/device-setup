@@ -1,0 +1,6 @@
+---
+- name: Enable the RPM Fusion repositories
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - rpmfusion

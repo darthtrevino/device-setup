@@ -1,0 +1,14 @@
+---
+# Which unit supervises each OneDrive account. The client refuses to run a
+# second instance against the same configuration directory, so exactly one
+# supervisor may be enabled per account:
+#
+#   client -> onedrive@<account>.service runs the client directly. Headless,
+#             and needs no desktop session.
+#   tray   -> onedrive-tray@<account>.service runs onedrive_tray, which spawns
+#             the client as a child and reports its progress in the system
+#             tray. Needs the onedrive_tray role and a graphical session.
+#
+# This lives here rather than in a role because both the onedrive and
+# onedrive_tray roles read it to decide which unit to enable and which to stop.
+onedrive_supervisor: tray

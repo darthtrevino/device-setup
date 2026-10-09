@@ -1,0 +1,53 @@
+---
+# Zen is installed from the upstream tarball into {{ zen_install_dir }}. A
+# Flatpak install would shadow it in the desktop's application list and keep
+# its own separate profile, so it is removed first.
+- name: Check whether Zen Browser is installed as a Flatpak
+  ansible.builtin.command:
+    cmd: flatpak info app.zen_browser.zen
+  register: zen_browser_flatpak
+  changed_when: false
+  check_mode: false
+  failed_when: false
+
+- name: Remove the Zen Browser Flatpak
+  become: true
+  ansible.builtin.command:
+    cmd: flatpak uninstall --assumeyes --noninteractive app.zen_browser.zen
+  changed_when: true
+  when: zen_browser_flatpak.rc == 0
+
+- name: Check whether Zen Browser is already installed
+  ansible.builtin.stat:
+    path: "{{ zen_install_dir }}/zen"
+  register: zen_browser_installed
+
+# Unpacked straight from the URL rather than downloading to /tmp first: one
+# task instead of three, and nothing left behind to clean up.
+- name: Unpack Zen Browser into {{ zen_install_prefix }}
+  become: true
+  ansible.builtin.unarchive:
+    src: "{{ zen_tarball_url }}"
+    dest: "{{ zen_install_prefix }}"
+    remote_src: true
+    owner: root
+    group: root
+  when: not zen_browser_installed.stat.exists
+
+- name: Install the Zen Browser shell integration snippet
+  ansible.builtin.copy:
+    src: zen.sh
+    dest: "{{ workstation_bashrcd }}/zen.sh"
+    mode: "0644"
+
+- name: Ensure the user applications directory exists
+  ansible.builtin.file:
+    path: "{{ workstation_applications_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Install the Zen Browser desktop launcher
+  ansible.builtin.template:
+    src: zen.desktop.j2
+    dest: "{{ workstation_applications_dir }}/zen.desktop"
+    mode: "0644"

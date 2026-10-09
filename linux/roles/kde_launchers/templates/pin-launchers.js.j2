@@ -1,0 +1,48 @@
+const widgetTypes = {{ kde_launchers_widget_ids | to_json }};
+const desired = {{ kde_launchers_entries | to_json }};
+
+let found = false;
+let changed = false;
+
+for (const panelId of panelIds) {
+    const panel = panelById(panelId);
+    if (!panel) {
+        continue;
+    }
+
+    for (const widgetId of panel.widgetIds) {
+        const widget = panel.widgetById(widgetId);
+        if (!widgetTypes.includes(widget.type)) {
+            continue;
+        }
+
+        found = true;
+        widget.currentConfigGroup = ["General"];
+        // readConfig returns the list comma-joined, but writeConfig must be
+        // given an array: handing it a joined string makes KConfig escape every
+        // comma and store the whole thing as a single launcher.
+        const current = String(widget.readConfig("launchers") || "")
+            .split(",")
+            .filter(Boolean);
+
+        // Append rather than rewrite, so launchers pinned by hand survive.
+        const merged = current.slice();
+        for (const entry of desired) {
+            if (!merged.includes(entry)) {
+                merged.push(entry);
+            }
+        }
+
+        if (merged.join(",") !== current.join(",")) {
+            widget.writeConfig("launchers", merged);
+            widget.reloadConfig();
+            changed = true;
+        }
+    }
+}
+
+if (!found) {
+    throw new Error("No Plasma panel containing a Task Manager was found");
+}
+
+print(changed ? "changed" : "ok");

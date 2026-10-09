@@ -1,0 +1,6 @@
+---
+- name: Install ripgrep
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - ripgrep

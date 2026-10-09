@@ -1,0 +1,36 @@
+---
+# Installed from the upstream release binary rather than the vendor's
+# `curl | sh` installer so the exact version is pinned and auditable.
+herdr_version: v0.9.0
+herdr_install_dir: "{{ workstation_home }}/.local/bin"
+herdr_binary: "{{ herdr_install_dir }}/herdr"
+herdr_architecture: x86_64
+herdr_release_url: >-
+  https://github.com/herdrdev/herdr/releases/download/{{ herdr_version }}/herdr-linux-{{ herdr_architecture }}
+
+# Omarchy-style shortcut profile (ctrl+space prefix). Set to false to leave an
+# existing config.toml alone.
+herdr_configure_keybindings: true
+herdr_config_dir: "{{ workstation_config_dir }}/herdr"
+
+# Matches the Catppuccin scheme the terminal and desktop already use.
+herdr_theme: catppuccin
+
+# Let the terminal's translucency show through Herdr's own chrome. Only has a
+# visible effect when the terminal is translucent; WezTerm is configured that
+# way by wezterm_background_opacity.
+herdr_transparent_background: true
+
+# The sidebar and selected-row highlights stay opaque by default, because they
+# are what separates the sidebar from the panes; make them transparent too for
+# a uniform look, at the cost of that visual boundary.
+herdr_transparent_sidebar: false
+
+# Distinct glyphs per agent state rather than coloured dots, which are hard to
+# distinguish at a glance once several agents are listed.
+herdr_status_indicators: symbols
+
+# Deliver agent notifications through the desktop notification service, so they
+# arrive when Herdr is not the focused window. "herdr" draws in-app toasts
+# instead, "terminal" asks the terminal to raise them, and "off" disables them.
+herdr_toast_delivery: system

@@ -1,0 +1,61 @@
+---
+- name: Resolve the latest binsider release tag
+  ansible.builtin.uri:
+    url: "https://api.github.com/repos/{{ binsider_repo }}/releases/latest"
+    return_content: true
+  register: binsider_release
+  check_mode: false
+  when: binsider_version == 'latest'
+
+- name: Select the binsider version to install
+  ansible.builtin.set_fact:
+    binsider_resolved_version: >-
+      {{ (binsider_release.json.tag_name if binsider_version == 'latest' else binsider_version) | regex_replace('^v', '') }}
+
+# `binsider --version` prints "binsider <version>", so the resolved version
+# appearing in that output means the right build is already in place. Failure
+# is expected and ignored on a machine that has never had it installed.
+- name: Read the currently installed binsider version
+  ansible.builtin.command:
+    cmd: "{{ binsider_install_dir }}/binsider --version"
+  register: binsider_installed
+  changed_when: false
+  check_mode: false
+  failed_when: false
+
+- name: Install binsider
+  when: binsider_resolved_version not in (binsider_installed.stdout | default(''))
+  block:
+    - name: Download the binsider release archive
+      become: true
+      ansible.builtin.get_url:
+        url: "{{ binsider_archive_url }}"
+        dest: "{{ binsider_download_path }}"
+        checksum: "{{ binsider_checksum }}"
+        owner: root
+        group: root
+        mode: "0644"
+
+    # The archive also carries a README, a changelog and two licence files, so
+    # only the binary is extracted -- everything else would be litter in
+    # /usr/local/bin. The tarball already marks it executable, so no mode is
+    # set here; setting one would apply to the destination directory as well.
+    - name: Unpack the binsider binary
+      become: true
+      ansible.builtin.unarchive:
+        src: "{{ binsider_download_path }}"
+        dest: "{{ binsider_install_dir }}"
+        remote_src: true
+        owner: root
+        group: root
+        extra_opts:
+          - --strip-components=1
+          - --wildcards
+          - "*/binsider"
+
+  always:
+    - name: Remove the downloaded binsider archive
+      become: true
+      ansible.builtin.file:
+        path: "{{ binsider_download_path }}"
+        state: absent

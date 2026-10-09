@@ -1,0 +1,97 @@
+local wezterm = require 'wezterm'
+local config = wezterm.config_builder()
+
+config.color_scheme = 'Catppuccin Mocha'
+config.font = wezterm.font('Hack Nerd Font Mono')
+config.font_size = 10.0
+
+config.window_frame = {
+  font_size = 10.0,
+}
+
+-- window_background_opacity only applies to cells using the default background.
+-- Anything that paints its own background -- a TUI, a highlighted line, ls
+-- colours -- is governed by text_background_opacity instead, so leaving that at
+-- 1.0 makes full-screen TUIs look completely opaque inside a translucent
+-- window. That layer composites on top of the window, so it is set lower to
+-- keep a TUI pane from reading darker than the rest of the terminal.
+config.window_background_opacity = {{ wezterm_background_opacity }}
+config.text_background_opacity = {{ wezterm_text_background_opacity }}
+
+config.window_padding = {
+  left = 4,
+  right = 4,
+  top = 4,
+  bottom = 4,
+}
+
+{% if not wezterm_confirm_window_close %}
+-- Closing the window discards whatever is running in it without asking.
+-- The mux keeps unattached panes alive, so this is not as destructive as it
+-- looks: a `wezterm connect` session survives the GUI going away.
+config.window_close_confirmation = 'NeverPrompt'
+{% endif %}
+
+{% if wezterm_mux_host %}
+-- Attach to the live GUI mux on {{ wezterm_mux_host }}, so a local tab renders
+-- the same session someone sitting at that machine sees.
+--
+-- proxy_command replaces the usual local socket with a stdio pipe: ssh -T
+-- (no pty, which would corrupt the binary mux protocol) runs `wezterm cli
+-- proxy` on the far end. The GUI's socket name embeds its pid, so the newest
+-- gui-sock-* is selected at connect time rather than pinned, and the runtime
+-- directory is resolved remotely instead of assuming a uid.
+config.unix_domains = {
+  {
+    name = '{{ wezterm_mux_name }}',
+    proxy_command = {
+      'ssh', '-T', '{{ wezterm_mux_user }}@{{ wezterm_mux_host }}',
+      'rd="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"; ss=$(ls -t "$rd"/wezterm/gui-sock-* 2>/dev/null | head -1); exec env WEZTERM_UNIX_SOCKET="$ss" wezterm cli proxy',
+    },
+  },
+}
+{% endif %}
+
+config.leader = { key = ';', mods = 'CTRL', timeout_milliseconds = 2000 }
+
+local act = wezterm.action
+config.keys = {
+  -- Splits. The action names look inverted against the keys because WezTerm
+  -- names a split after the axis it divides (SplitHorizontal puts panes side
+  -- by side) while Herdr follows Vim, where a vertical split is the side by
+  -- side one. Bound so the keys agree with Herdr on the result: v gives two
+  -- panes side by side, h gives one above the other.
+  { key = 'v', mods = 'LEADER', action = act.SplitHorizontal { domain = 'CurrentPaneDomain' } },
+  { key = 'h', mods = 'LEADER', action = act.SplitVertical { domain = 'CurrentPaneDomain' } },
+
+  -- Pane navigation (jkli = left/down/up/right)
+  { key = 'j', mods = 'LEADER', action = act.ActivatePaneDirection 'Left' },
+  { key = 'k', mods = 'LEADER', action = act.ActivatePaneDirection 'Down' },
+  { key = 'i', mods = 'LEADER', action = act.ActivatePaneDirection 'Up' },
+  { key = 'l', mods = 'LEADER', action = act.ActivatePaneDirection 'Right' },
+
+  -- Tabs
+  { key = 't', mods = 'LEADER', action = act.SpawnTab 'CurrentPaneDomain' },
+  { key = 'n', mods = 'LEADER', action = act.ActivateTabRelative(1) },
+  { key = 'p', mods = 'LEADER', action = act.ActivateTabRelative(-1) },
+
+  -- Rename tab
+  { key = 'r', mods = 'LEADER', action = act.PromptInputLine {
+    description = 'Enter new tab name:',
+    action = wezterm.action_callback(function(window, pane, line)
+      if line then
+        window:active_tab():set_title(line)
+      end
+    end),
+  } },
+
+  -- Close pane
+  { key = 'x', mods = 'LEADER', action = act.CloseCurrentPane { confirm = true } },
+
+{% if wezterm_mux_host %}
+  -- Attach to the {{ wezterm_mux_name }} mux session
+  { key = 'g', mods = 'LEADER', action = act.AttachDomain '{{ wezterm_mux_name }}' },
+{% endif %}
+}
+
+return config

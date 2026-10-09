@@ -1,0 +1,37 @@
+[Unit]
+Description=OneDrive system tray icon for the %i account
+Documentation=https://github.com/DanielBorgesOliveira/onedrive_tray
+# The tray starts its own onedrive child, and the client allows a single
+# instance per configuration directory, so the two supervisors must never be
+# active together. Conflicts= is symmetric, so declaring it here is enough for
+# systemd to refuse the combination no matter which unit is started first.
+Conflicts=onedrive@%i.service
+# A tray icon is meaningless without a desktop session, and the program exits
+# straight away when it finds no system tray to dock into. PartOf= also stops
+# it again when the session ends instead of leaving an orphan behind.
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+# -s suppresses the modal "I couldn't detect any system tray" dialog; the
+# non-zero exit is enough for systemd to act on. The client arguments are one
+# quoted argument because the tray splits them on whitespace itself, and it
+# reads --confdir back out of them to find the folder for its "open folder"
+# action -- so that flag has to be passed here rather than left to the config.
+ExecStart={{ onedrive_tray_install_path }} -s -p /usr/bin/onedrive -a "{{ onedrive_tray_client_args }} --confdir=%h/.config/onedrive-%i"
+Restart=on-failure
+# Long enough that the five-starts-in-ten-seconds default rate limit is not
+# tripped while waiting for the panel to appear at login.
+RestartSec=3
+# An interrupted upload has to be unwound cleanly, so give the child room to
+# stop before it is killed.
+TimeoutStopSec=90
+
+# The tray needs the session bus and the display, so the aggressive sandboxing
+# the client's own unit uses would break it. A read-only /usr still costs it
+# nothing.
+ProtectSystem=full
+
+[Install]
+WantedBy=graphical-session.target

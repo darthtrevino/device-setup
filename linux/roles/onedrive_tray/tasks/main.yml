@@ -1,0 +1,119 @@
+---
+- name: Read the commit the installed tray was built from
+  ansible.builtin.slurp:
+    src: "{{ onedrive_tray_stamp_path }}"
+  register: onedrive_tray_stamp
+  failed_when: false
+  changed_when: false
+  check_mode: false
+
+# Compiling takes a minute or so, so it is skipped entirely unless the pinned
+# commit differs from whatever is already installed.
+- name: Build and install onedrive_tray
+  when: onedrive_tray_version != (onedrive_tray_stamp.content | default('') | b64decode | trim)
+  block:
+    - name: Install the onedrive_tray build dependencies
+      become: true
+      ansible.builtin.dnf:
+        name: "{{ onedrive_tray_build_packages }}"
+        state: present
+
+    - name: Check out the pinned onedrive_tray source
+      ansible.builtin.git:
+        repo: "{{ onedrive_tray_repo }}"
+        dest: "{{ onedrive_tray_build_dir }}"
+        version: "{{ onedrive_tray_version }}"
+
+    # qmake insists on a shadow build directory; running it in the source tree
+    # leaves generated makefiles behind that confuse the next checkout.
+    - name: Create the onedrive_tray build directory
+      ansible.builtin.file:
+        path: "{{ onedrive_tray_build_dir }}/build"
+        state: directory
+        mode: "0755"
+
+    - name: Generate the onedrive_tray makefile
+      ansible.builtin.command:
+        cmd: qmake-qt5 ../systray.pro
+        chdir: "{{ onedrive_tray_build_dir }}/build"
+        creates: "{{ onedrive_tray_build_dir }}/build/Makefile"
+
+    - name: Compile onedrive_tray
+      ansible.builtin.command:
+        cmd: make -j{{ ansible_facts['processor_vcpus'] }}
+        chdir: "{{ onedrive_tray_build_dir }}/build"
+        creates: "{{ onedrive_tray_build_dir }}/build/onedrive_tray"
+
+    - name: Install the onedrive_tray binary
+      become: true
+      ansible.builtin.copy:
+        src: "{{ onedrive_tray_build_dir }}/build/onedrive_tray"
+        dest: "{{ onedrive_tray_install_path }}"
+        remote_src: true
+        owner: root
+        group: root
+        mode: "0755"
+      notify: Restart authorised OneDrive accounts
+
+    - name: Ensure the onedrive_tray stamp directory exists
+      become: true
+      ansible.builtin.file:
+        path: "{{ onedrive_tray_stamp_path | dirname }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Record the commit the tray was built from
+      become: true
+      ansible.builtin.copy:
+        content: "{{ onedrive_tray_version }}\n"
+        dest: "{{ onedrive_tray_stamp_path }}"
+        owner: root
+        group: root
+        mode: "0644"
+
+  always:
+    # The checkout is a build artefact, not something to keep in sync; leaving
+    # it would also mean the next version bump built on top of a stale tree.
+    - name: Remove the onedrive_tray build tree
+      ansible.builtin.file:
+        path: "{{ onedrive_tray_build_dir }}"
+        state: absent
+
+- name: Install the OneDrive tray service template
+  ansible.builtin.template:
+    src: "{{ onedrive_tray_service_template }}.j2"
+    dest: "{{ onedrive_systemd_dir }}/{{ onedrive_tray_service_template }}"
+    mode: "0644"
+  notify: Restart authorised OneDrive accounts
+
+# Stopping the client's own unit is what makes the handover safe. Conflicts= in
+# the tray unit would stop it anyway, but leaving it *enabled* would race the
+# tray at the next login and leave whichever lost holding a dead instance.
+- name: Disable the client-supervised OneDrive accounts
+  ansible.builtin.systemd_service:
+    name: "onedrive@{{ item.name }}.service"
+    scope: user
+    enabled: false
+    state: stopped
+    daemon_reload: true
+  loop: "{{ onedrive_accounts }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: onedrive_supervisor == 'tray'
+
+# Only authorised accounts are started, for the same reason the onedrive role
+# gates its own unit: the child would exit immediately without a refresh token
+# and take the tray down with it.
+- name: Enable the OneDrive tray supervisors
+  ansible.builtin.systemd_service:
+    name: "onedrive-tray@{{ item.name }}.service"
+    scope: user
+    enabled: true
+    state: started
+    daemon_reload: true
+  loop: "{{ onedrive_authorised_accounts | default([]) }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: onedrive_supervisor == 'tray'

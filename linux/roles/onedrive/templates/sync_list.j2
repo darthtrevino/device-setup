@@ -1,0 +1,20 @@
+{#
+  sync_list excludes everything by default -- only what is listed here is
+  synchronised, and an exclusion always beats an inclusion.
+
+  Rules are anchored with a leading slash on purpose. An unanchored rule like
+  `Books` instructs the client to scan every folder, online and local, looking
+  for anything of that name, which is the most expensive form of rule there is.
+-#}
+# Managed by Ansible (roles/onedrive). Local edits will be overwritten.
+#
+# Rule reference: /usr/share/doc/onedrive/usage.md
+# Account: {{ account.name }}
+#
+# Everything not listed below is excluded from synchronisation. Changing these
+# rules only takes effect after a full resynchronisation:
+#
+#     setup-onedrive-{{ account.name }}.sh --resync
+{% for rule in account.sync_list %}
+{{ rule }}
+{% endfor %}

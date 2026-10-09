@@ -1,0 +1,6 @@
+---
+- name: Install binsider
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - binsider

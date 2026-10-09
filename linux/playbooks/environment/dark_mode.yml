@@ -1,0 +1,6 @@
+---
+- name: Configure the system dark-mode preference
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - dark_mode

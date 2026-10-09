@@ -1,0 +1,32 @@
+state_file = "auto"
+
+[hotkey]
+# evdev reports key releases, which KWin does not, so push-to-talk is only
+# possible through Voxtype's own watcher. Requires the input group; the role
+# grants it.
+enabled = {{ voxtype_hotkey_enabled | bool | string | lower }}
+key = "{{ voxtype_hotkey_key }}"
+mode = "{{ voxtype_hotkey_mode }}"
+
+[audio]
+device = "default"
+sample_rate = 16000
+max_duration_secs = 60
+pause_media = true
+
+[whisper]
+model = "{{ voxtype_model }}"
+language = "{{ voxtype_language }}"
+translate = false
+# Matches voxtype's own default. Stated explicitly because voxtype-tray's
+# health check assumes the key is true when it is absent, and then warns that
+# the transcribe-worker helper it would need is missing from PATH.
+gpu_isolation = false
+
+[output]
+mode = "type"
+fallback_to_clipboard = true
+# Driver selection is explained in the role's defaults; the clipboard stays
+# last so a failed injection still leaves the text somewhere.
+driver_order = [{% for d in voxtype_output_drivers %}"{{ d }}"{% if not loop.last %}, {% endif %}{% endfor %}]
+type_delay_ms = 1

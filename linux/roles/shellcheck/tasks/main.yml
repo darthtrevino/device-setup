@@ -1,0 +1,6 @@
+---
+- name: Install ShellCheck
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ shellcheck_packages }}"
+    state: present

@@ -1,0 +1,5 @@
+---
+# Fedora packages ShellCheck under its upstream CamelCase name, not
+# `shellcheck` -- `dnf install shellcheck` finds nothing.
+shellcheck_packages:
+  - ShellCheck

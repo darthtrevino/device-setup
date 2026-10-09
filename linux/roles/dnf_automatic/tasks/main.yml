@@ -1,0 +1,32 @@
+---
+- name: Install the dnf automatic plugin
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ dnf_automatic_package }}"
+    state: present
+
+- name: Configure unattended upgrades
+  become: true
+  community.general.ini_file:
+    path: "{{ dnf_automatic_config }}"
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    mode: "0644"
+  loop:
+    - {section: commands, option: apply_updates, value: "{{ dnf_automatic_apply_updates }}"}
+    - {section: commands, option: download_updates, value: "{{ dnf_automatic_download_updates }}"}
+    - {section: commands, option: upgrade_type, value: "{{ dnf_automatic_upgrade_type }}"}
+    - {section: commands, option: reboot, value: "{{ dnf_automatic_reboot }}"}
+    - {section: emitters, option: emit_via, value: "{{ dnf_automatic_emit_via }}"}
+    - {section: emitters, option: emit_no_updates, value: "{{ dnf_automatic_emit_no_updates }}"}
+  loop_control:
+    label: "{{ item.section }}.{{ item.option }}"
+
+- name: Enable the automatic upgrade timer
+  become: true
+  ansible.builtin.systemd_service:
+    name: "{{ dnf_automatic_timer }}"
+    enabled: true
+    state: started
+    daemon_reload: true

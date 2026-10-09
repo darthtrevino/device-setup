@@ -1,0 +1,8 @@
+---
+dependencies:
+  # Supplies workstation_local_bin, workstation_config_dir and
+  # workstation_applications_dir.
+  - role: workstation
+  # The tray is a front end for the voxtype daemon: it reads and rewrites
+  # ~/.config/voxtype/config.toml and drives voxtype.service over systemd.
+  - role: voxtype

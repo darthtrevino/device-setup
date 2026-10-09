@@ -1,0 +1,14 @@
+---
+# Pin the source revision so workstation rebuilds do not silently install
+# different daemon code. Update this SHA when adopting upstream changes.
+surface_dial_version: ba2faad507b4f9a368e5f7e0fd25f61118369178
+surface_dial_source_base_url: >-
+  https://raw.githubusercontent.com/darthtrevino/surface-dial-linux/{{ surface_dial_version }}
+surface_dial_packages:
+  - python3
+  - systemd-udev
+  - wireplumber
+surface_dial_script_path: "{{ workstation_local_bin }}/surface-dial"
+surface_dial_systemd_dir: "{{ workstation_home }}/.config/systemd/user"
+surface_dial_service_name: surface-dial.service
+surface_dial_udev_rule_path: /etc/udev/rules.d/70-surface-dial.rules

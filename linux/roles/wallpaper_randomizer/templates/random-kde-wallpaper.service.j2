@@ -1,0 +1,8 @@
+[Unit]
+Description=Select a random KDE wallpaper
+After=plasma-plasmashell.service
+ConditionPathIsDirectory={{ wallpaper_randomizer_directory }}
+
+[Service]
+Type=oneshot
+ExecStart={{ wallpaper_randomizer_script_path }}

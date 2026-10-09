@@ -1,0 +1,21 @@
+---
+- name: Resolve the latest bottom release tag
+  ansible.builtin.uri:
+    url: "https://api.github.com/repos/{{ bottom_repo }}/releases/latest"
+    return_content: true
+  register: bottom_release
+  check_mode: false
+  when: bottom_version == 'latest'
+
+- name: Select the bottom version to install
+  ansible.builtin.set_fact:
+    bottom_resolved_version: >-
+      {{ (bottom_release.json.tag_name if bottom_version == 'latest' else bottom_version) | regex_replace('^v', '') }}
+
+- name: Install bottom from the upstream release RPM
+  become: true
+  ansible.builtin.dnf:
+    name: >-
+      https://github.com/{{ bottom_repo }}/releases/download/{{ bottom_resolved_version }}/bottom-{{ bottom_resolved_version }}-1.x86_64.rpm
+    state: present
+    disable_gpg_check: true

@@ -1,0 +1,59 @@
+---
+# Upstream publishes a signed RPM per release but no yum repository, so the
+# release artifact is pinned by version instead.
+voxtype_version: 1.0.1
+voxtype_rpm_url: >-
+  https://github.com/peteonrails/voxtype/releases/download/v{{ voxtype_version }}/voxtype-{{ voxtype_version }}-1.x86_64.rpm
+
+# wtype cannot work on KDE: KWin does not implement
+# virtual-keyboard-unstable-v1 for ordinary clients, so it fails with
+# "Compositor does not support the virtual keyboard protocol" and every
+# transcription silently falls through to the clipboard. ydotool goes through
+# the kernel instead, which KWin cannot refuse. The clipboard is kept last so
+# nothing is ever lost outright.
+voxtype_output_drivers:
+  - ydotool
+  - clipboard
+
+# pipewire-alsa is required: without it capture fails with "device not
+# available".
+# gtk4-layer-shell is needed by the on-screen display, which the release RPM
+# ships but does not declare a dependency on: without it voxtype-osd-gtk4
+# cannot resolve libgtk4-layer-shell.so.0, and the daemon gives up after the
+# OSD child crashes three times.
+# wtype is deliberately absent; see voxtype_output_drivers above. Add it back
+# alongside the driver if this role is ever pointed at a compositor that
+# implements the protocol.
+voxtype_packages:
+  - wl-clipboard
+  - libnotify
+  - pipewire-alsa
+  - gtk4-layer-shell
+
+voxtype_model: base.en
+voxtype_language: en
+
+# Dictation trigger. Voxtype watches the keyboard itself through evdev rather
+# than going through a KDE global shortcut, because KWin emits no key-release
+# events: a compositor shortcut can only ever toggle, whereas evdev sees both
+# edges and so can hold the recording open for as long as the key is down.
+voxtype_hotkey_enabled: true
+voxtype_hotkey_key: SCROLLLOCK
+voxtype_hotkey_mode: push_to_talk
+
+# Reading evdev requires membership of this group, which confers read access
+# to every input device on the machine. It is therefore only granted when the
+# built-in hotkey is actually in use, and takes effect on the next login.
+voxtype_hotkey_group: input
+
+# The KGlobalAccel binding, kept as a fallback for compositors where evdev is
+# unavailable. It cannot do push-to-talk, so enabling it also means setting
+# voxtype_hotkey_mode to toggle.
+voxtype_kde_shortcut_enabled: false
+voxtype_shortcut: Meta+Shift+V
+# KGlobalAccel's D-Bus API takes a Qt keycode, not the human-readable name:
+# Qt::Key_V (0x56) | Qt::MetaModifier (0x10000000) | Qt::ShiftModifier
+# (0x02000000). Recompute this when changing voxtype_shortcut.
+voxtype_shortcut_keycode: 301989974
+voxtype_shortcut_name: Voxtype Toggle
+voxtype_shortcut_desktop_file: voxtype-toggle.desktop

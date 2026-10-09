@@ -1,0 +1,6 @@
+---
+- name: Install gitui
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ gitui_packages }}"
+    state: present

@@ -1,0 +1,20 @@
+---
+# Everything here is deliberately rootless: containers run as the invoking
+# user, under that user's systemd instance, with no root daemon anywhere.
+podman_packages:
+  - podman
+  - podman-compose
+  - podman-docker      # provides a `docker` shim that shells out to podman
+  - containers-common
+  - fuse-overlayfs
+  - passt              # rootless networking (pasta), replaces slirp4netns
+  - crun
+
+# Expose the rootless podman API socket as DOCKER_HOST so tools that only
+# speak the Docker API (docker compose, testcontainers, IDE plugins) work
+# without a root daemon.
+podman_enable_docker_socket: true
+
+# Keep the user's systemd instance (and therefore long-lived containers)
+# running when they are not logged in.
+podman_enable_linger: true

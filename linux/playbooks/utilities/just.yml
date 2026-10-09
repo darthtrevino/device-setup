@@ -1,0 +1,6 @@
+---
+- name: Install the just command runner
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - just

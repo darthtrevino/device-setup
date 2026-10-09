@@ -1,0 +1,27 @@
+{
+  "policies": {
+    "ExtensionSettings": {
+{% for ext in zen_extensions %}
+      {{ ext.guid | to_json }}: {
+        "installation_mode": "force_installed",
+        "install_url": "file://{{ zen_install_dir }}/browser/extensions/{{ ext.guid }}.xpi"
+      }{{ "," if not loop.last else "" }}
+{% endfor %}
+    },
+    "PictureInPicture": {
+      "Enabled": {{ zen_policies_picture_in_picture | bool | to_json }}
+    },
+    "DNSOverHTTPS": {
+      "Enabled": {{ zen_policies_dns_over_https | bool | to_json }}
+    },
+    "PasswordManagerEnabled": {{ zen_policies_password_manager | bool | to_json }},
+    "Preferences": {
+{% for name, value in zen_policies_preferences.items() %}
+      {{ name | to_json }}: {
+        "Value": {{ value | to_json }},
+        "Status": "default"
+      }{{ "," if not loop.last else "" }}
+{% endfor %}
+    }
+  }
+}

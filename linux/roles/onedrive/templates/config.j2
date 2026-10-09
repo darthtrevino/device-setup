@@ -1,0 +1,17 @@
+{#
+  Only the options this role sets are emitted. Everything omitted keeps the
+  client's compiled-in default, so this file stays small and reviewable rather
+  than being a copy of the shipped example with one line changed.
+
+  The parser wants every value quoted, and booleans as the strings "true" and
+  "false" -- Jinja renders Python booleans as True/False, so they are lowered.
+-#}
+# Managed by Ansible (roles/onedrive). Local edits will be overwritten.
+#
+# Option reference: /usr/share/doc/onedrive/config
+# Account: {{ account.name }}
+
+sync_dir = "{{ account.sync_dir }}"
+{% for key, value in (onedrive_common_options | combine(account.options | default({})) | dictsort) %}
+{{ key }} = "{{ value | lower if value is boolean else value }}"
+{% endfor %}

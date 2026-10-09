@@ -1,0 +1,6 @@
+---
+- name: Install jq
+  become: true
+  ansible.builtin.dnf:
+    name: jq
+    state: present

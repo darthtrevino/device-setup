@@ -1,0 +1,6 @@
+---
+- name: Install the Rust toolchain
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - rust

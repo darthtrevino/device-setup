@@ -1,0 +1,6 @@
+---
+- name: Install the Go toolchain
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - golang

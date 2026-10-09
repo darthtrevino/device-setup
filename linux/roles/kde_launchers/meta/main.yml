@@ -1,0 +1,9 @@
+---
+dependencies:
+  # The launchers reference each application's desktop file, so the
+  # applications must be installed before they are pinned.
+  - role: steam
+  - role: spotify
+  - role: discord
+  - role: bitwarden
+  - role: microsoft_edge

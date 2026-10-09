@@ -1,0 +1,6 @@
+---
+- name: Configure the ~/.bashrc.d drop-in directory
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - bashrcd

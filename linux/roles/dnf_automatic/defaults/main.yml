@@ -1,0 +1,30 @@
+---
+# Unattended package updates. On Fedora 44 this is a dnf5 plugin, not the old
+# standalone dnf-automatic; the package ships /etc/dnf/automatic.conf empty and
+# keeps its defaults in /usr/share/dnf5/dnf5-plugins/automatic.conf, so only the
+# keys that differ are written here.
+dnf_automatic_package: dnf5-plugin-automatic
+dnf_automatic_config: /etc/dnf/automatic.conf
+
+# dnf-automatic.timer also exists, but it is a symlink to this unit rather than
+# a second timer, so systemd treats the two names as one. Use the real unit:
+# acting on the alias would operate on this same timer.
+dnf_automatic_timer: dnf5-automatic.timer
+
+# Actually install the updates, rather than only staging them in the cache.
+dnf_automatic_apply_updates: "yes"
+dnf_automatic_download_updates: "yes"
+
+# "default" is every available upgrade, not just security ones. This never
+# crosses a Fedora release: dnf automatic upgrades within the installed release
+# only, so it cannot trigger a version upgrade on its own.
+dnf_automatic_upgrade_type: default
+
+# A workstation should reboot when its user says so, not at 6am mid-session.
+dnf_automatic_reboot: never
+
+# stdio lands in the journal, which is where an unattended run belongs. The motd
+# emitter is a poor fit here: motd is printed by PAM at login, so a desktop
+# session with graphical terminals would rarely display it.
+dnf_automatic_emit_via: stdio
+dnf_automatic_emit_no_updates: "no"

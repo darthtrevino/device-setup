@@ -1,0 +1,29 @@
+---
+- name: Reload ydotool udev rules
+  become: true
+  ansible.builtin.command:
+    cmd: udevadm control --reload-rules
+  changed_when: true
+  listen: Reload ydotool device access
+
+# uinput is a static misc device rather than a hotplug one, so a trigger on the
+# misc subsystem is what re-applies the rule to the existing node.
+- name: Trigger the uinput device rule
+  become: true
+  ansible.builtin.command:
+    cmd: udevadm trigger --subsystem-match=misc --action=change
+  changed_when: true
+  listen: Reload ydotool device access
+
+- name: Load the uinput module
+  become: true
+  community.general.modprobe:
+    name: uinput
+    state: present
+
+- name: Restart ydotoold
+  ansible.builtin.systemd_service:
+    name: "{{ ydotool_service_name }}"
+    scope: user
+    state: restarted
+    daemon_reload: true

@@ -1,0 +1,6 @@
+---
+- name: Install Surface Dial volume control
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - surface_dial

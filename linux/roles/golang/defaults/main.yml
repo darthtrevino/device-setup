@@ -1,0 +1,5 @@
+---
+# Go is installed from upstream tarballs rather than dnf so the toolchain can
+# be kept at the latest release independently of the Fedora package.
+golang_install_dir: /usr/local/go
+golang_version: latest

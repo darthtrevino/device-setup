@@ -1,0 +1,6 @@
+---
+- name: Install gitui
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - gitui

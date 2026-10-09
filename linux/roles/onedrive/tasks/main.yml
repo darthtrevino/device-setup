@@ -1,0 +1,176 @@
+---
+- name: Install the OneDrive client
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ onedrive_packages }}"
+    state: present
+
+- name: Ensure the user systemd directory exists
+  ansible.builtin.file:
+    path: "{{ onedrive_systemd_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Install the OneDrive service template
+  ansible.builtin.template:
+    src: onedrive@.service.j2
+    dest: "{{ onedrive_systemd_dir }}/{{ onedrive_service_template }}"
+    mode: "0644"
+  notify: Restart authorised OneDrive accounts
+
+# Mode 0700 because the refresh token the client writes here is a bearer
+# credential for the whole account.
+- name: Create the per-account configuration directories
+  ansible.builtin.file:
+    path: "{{ workstation_config_dir }}/onedrive-{{ item.name }}"
+    state: directory
+    mode: "0700"
+  loop: "{{ onedrive_accounts }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+# Matches the client's own sync_dir_permissions default of 700. Created up
+# front so the directory exists with the intended mode before the first sync
+# rather than being created mid-transfer.
+- name: Create the local sync directories
+  ansible.builtin.file:
+    path: "{{ item.sync_dir }}"
+    state: directory
+    mode: "0700"
+  loop: "{{ onedrive_accounts }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Install the per-account configuration
+  ansible.builtin.template:
+    src: config.j2
+    dest: "{{ workstation_config_dir }}/onedrive-{{ item.name }}/config"
+    mode: "0600"
+  vars:
+    account: "{{ item }}"
+  loop: "{{ onedrive_accounts }}"
+  loop_control:
+    label: "{{ item.name }}"
+  notify: Restart authorised OneDrive accounts
+
+# Written only for accounts that actually define rules: the file excludes
+# everything it does not list, so an empty one would stop an account syncing
+# anything at all. No restart is notified because a restart alone does not
+# apply new filtering -- see the resync report below.
+- name: Install the per-account sync_list
+  ansible.builtin.template:
+    src: sync_list.j2
+    dest: "{{ workstation_config_dir }}/onedrive-{{ item.name }}/sync_list"
+    mode: "0600"
+  vars:
+    account: "{{ item }}"
+  loop: "{{ onedrive_accounts | selectattr('sync_list', 'defined') | list }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: onedrive_sync_list
+
+- name: Remove the sync_list from accounts that no longer filter
+  ansible.builtin.file:
+    path: "{{ workstation_config_dir }}/onedrive-{{ item.name }}/sync_list"
+    state: absent
+  loop: "{{ onedrive_accounts | rejectattr('sync_list', 'defined') | list }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: onedrive_sync_list_removed
+
+# Authorisation is an interactive browser sign-in, so it cannot be automated
+# here. The role installs a per-account helper that performs the sign-in and
+# enables the service once it succeeds.
+- name: Install the per-account sign-in helpers
+  ansible.builtin.template:
+    src: setup-onedrive.sh.j2
+    dest: "{{ workstation_local_bin }}/setup-onedrive-{{ item.name }}.sh"
+    mode: "0755"
+  vars:
+    account: "{{ item }}"
+  loop: "{{ onedrive_accounts }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+# The client writes a refresh_token into the configuration directory once
+# authorisation succeeds, which makes that file a reliable marker for "this
+# account is ready to run unattended".
+- name: Check which accounts have been authorised
+  ansible.builtin.stat:
+    path: "{{ workstation_config_dir }}/onedrive-{{ item.name }}/refresh_token"
+  register: onedrive_token_stat
+  loop: "{{ onedrive_accounts }}"
+  loop_control:
+    label: "{{ item.name }}"
+  changed_when: false
+  check_mode: false
+
+- name: Record which accounts are ready to run
+  ansible.builtin.set_fact:
+    onedrive_authorised_accounts: >-
+      {{ onedrive_token_stat.results | selectattr('stat.exists') | map(attribute='item') | list }}
+
+# Only authorised accounts are enabled. An instance with no refresh token exits
+# straight away, and systemd's start rate limiting would leave the unit failed,
+# so enabling one early would turn a pending sign-in into a broken service.
+- name: Enable the authorised OneDrive accounts
+  ansible.builtin.systemd_service:
+    name: "onedrive@{{ item.name }}.service"
+    scope: user
+    enabled: true
+    state: started
+    daemon_reload: true
+  loop: "{{ onedrive_authorised_accounts }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: onedrive_supervisor == 'client'
+
+- name: Check whether the tray supervisor units are installed
+  ansible.builtin.stat:
+    path: "{{ onedrive_systemd_dir }}/onedrive-tray@.service"
+  register: onedrive_tray_unit_stat
+  changed_when: false
+  check_mode: false
+
+# The mirror of what the onedrive_tray role does when handing the other way:
+# switching back to the client has to stop the tray, or both would try to drive
+# the same configuration directory.
+- name: Disable the tray-supervised OneDrive accounts
+  ansible.builtin.systemd_service:
+    name: "onedrive-tray@{{ item.name }}.service"
+    scope: user
+    enabled: false
+    state: stopped
+    daemon_reload: true
+  loop: "{{ onedrive_accounts }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when:
+    - onedrive_supervisor == 'client'
+    - onedrive_tray_unit_stat.stat.exists
+
+- name: Report the accounts still waiting on a sign-in
+  ansible.builtin.debug:
+    msg: >-
+      Not yet authorised: {{ onedrive_pending | join(', ') }}.
+      Sign in by running:
+      {{ onedrive_pending | map('regex_replace', '^(.*)$', 'setup-onedrive-\1.sh') | join(', ') }}
+  vars:
+    onedrive_pending: >-
+      {{ onedrive_accounts | map(attribute='name') | difference(onedrive_authorised_accounts | map(attribute='name') | list) }}
+  when: onedrive_pending | length > 0
+
+# New filtering rules only take effect once the client forgets its saved state.
+# That is a heavy operation which prompts for confirmation before it runs, so
+# it is reported for a human to perform rather than triggered from here.
+- name: Report the accounts whose sync filtering changed
+  ansible.builtin.debug:
+    msg: >-
+      Sync filtering changed for {{ onedrive_resync_pending | join(', ') }}.
+      The new rules apply only after a full resynchronisation:
+      {{ onedrive_resync_pending | map('regex_replace', '^(.*)$', 'setup-onedrive-\1.sh --resync') | join(', ') }}
+  vars:
+    onedrive_resync_pending: >-
+      {{ ((onedrive_sync_list.results | default([])) + (onedrive_sync_list_removed.results | default([])))
+         | selectattr('changed') | map(attribute='item.name') | list }}
+  when: onedrive_resync_pending | length > 0

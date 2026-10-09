@@ -1,0 +1,12 @@
+---
+# Fedora Workstation ships openssh-server but leaves sshd disabled, so a fresh
+# install has no way in until someone sits down at the console. This role just
+# turns it on.
+sshd_service: sshd
+sshd_enabled: true
+sshd_state: started
+
+# firewalld already allows the `ssh` service in the default zone on a stock
+# Fedora install; asserting it here keeps the role correct on hosts where the
+# zone has been customised. Set false to leave the firewall untouched.
+sshd_manage_firewall: true

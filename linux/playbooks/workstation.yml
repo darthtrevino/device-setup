@@ -1,0 +1,81 @@
+---
+# Full workstation build. Roles are ordered so that repositories and shell
+# plumbing land before the things that depend on them; meta/main.yml
+# dependencies keep the directed single-role playbooks correct on their own.
+- name: Provision a Fedora workstation
+  hosts: workstations
+  gather_facts: true
+  roles:
+    # ── Repositories and shell plumbing ──
+    - rpmfusion
+    - flatpak
+    - bashrcd
+
+    # ── System maintenance ──
+    # After rpmfusion, so unattended upgrades cover it from the first run.
+    - dnf_automatic
+
+    # ── Command line tooling ──
+    - git
+    - github_cli
+    - github_copilot_cli
+    - github_copilot_app
+    - gitui
+    - herdr
+    - vim
+    - jq
+    - just
+    - ripgrep
+    - task
+    - tealdeer
+    - bottom
+    - binsider
+    - shellcheck
+    - yt_dlp
+    - starship
+
+    # ── Remote access ──
+    - sshd
+
+    # ── Language toolchains ──
+    - golang
+    - rust
+    - uv
+    - nvm
+
+    # ── Containers ──
+    - podman
+
+    # ── Hardware integration ──
+    - surface_dial
+    - zsa_keyboard
+    - gaze
+    - ydotool
+    - voxtype
+    - voxtype_tray
+
+    # ── Desktop applications ──
+    - wezterm
+    - vscode
+    - calibre
+    - discord
+    - steam
+    - bitwarden
+    - spotify
+    - microsoft_edge
+    - onedrive
+    - onedrive_tray
+    - firefox
+    - zen_browser
+    - zen_browser_extensions
+    - zen_browser_policies
+
+    # ── Desktop look and feel ──
+    - jetbrains_mono
+    - nerd_fonts_hack
+    - catppuccin_gnome_terminal
+    - no_notifications
+    - dark_mode
+    - kde_orthocal
+    - kde_launchers
+    - wallpaper_randomizer

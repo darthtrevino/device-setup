@@ -1,0 +1,12 @@
+---
+# Pin the widget source so workstation rebuilds are reproducible. Update this
+# SHA when adopting changes from linux-shell-orthocal.
+kde_orthocal_version: d3472a7934cec206100ba969f6781ce0a85d5e42
+kde_orthocal_repository: https://github.com/darthtrevino/linux-shell-orthocal.git
+kde_orthocal_source_dir: "{{ workstation_home }}/.local/src/linux-shell-orthocal"
+kde_orthocal_widget_id: com.github.darthtrevino.orthocal
+kde_orthocal_clock_widget_id: org.kde.plasma.digitalclock
+kde_orthocal_packages:
+  - glib2
+  - kf6-kpackage
+  - zip

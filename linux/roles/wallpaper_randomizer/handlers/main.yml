@@ -1,0 +1,8 @@
+---
+- name: Restart wallpaper randomizer timer
+  ansible.builtin.systemd_service:
+    name: "{{ wallpaper_randomizer_unit_name }}.timer"
+    scope: user
+    enabled: true
+    state: restarted
+    daemon_reload: true

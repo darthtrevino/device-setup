@@ -1,0 +1,16 @@
+---
+- name: Read the current GNOME event-sounds setting
+  ansible.builtin.command:
+    cmd: gsettings get org.gnome.desktop.sound event-sounds
+  register: no_notifications_current
+  changed_when: false
+  check_mode: false
+  failed_when: false
+
+- name: Disable GNOME event sounds
+  ansible.builtin.command:
+    cmd: gsettings set org.gnome.desktop.sound event-sounds false
+  changed_when: true
+  when:
+    - no_notifications_current.rc == 0
+    - no_notifications_current.stdout | trim != 'false'

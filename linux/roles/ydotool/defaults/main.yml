@@ -1,0 +1,33 @@
+---
+# Types text by registering a virtual keyboard with the kernel through
+# /dev/uinput, which makes it work under any compositor. Needed on KDE, where
+# wtype cannot function: KWin does not implement virtual-keyboard-unstable-v1
+# for ordinary clients, so wtype exits with "Compositor does not support the
+# virtual keyboard protocol" every time.
+
+ydotool_packages:
+  - ydotool
+
+# The daemon runs as the workstation user rather than root. Everything it needs
+# is a writable /dev/uinput, so there is no reason to give it more.
+ydotool_service_name: ydotoold.service
+ydotool_systemd_dir: "{{ workstation_config_dir }}/systemd/user"
+
+# XDG_RUNTIME_DIR is per-user, mode 0700 and cleared on logout, which suits a
+# socket that grants the ability to synthesise keystrokes. ydotool's built-in
+# default of /tmp/.ydotool_socket is world-traversable, so the path is set
+# explicitly here and exported to anything that needs it.
+ydotool_socket: "%t/.ydotool_socket"
+ydotool_socket_env: "${XDG_RUNTIME_DIR}/.ydotool_socket"
+
+# /dev/uinput is root-owned and mode 0660 with no group anyone is in, so it
+# needs a udev rule to become usable. Steam ships one, which is why this can
+# appear to work already on a machine with Steam installed -- but that is an
+# accident of another package, so the rule is owned here as well.
+ydotool_manage_udev_rule: true
+ydotool_udev_rule_path: /etc/udev/rules.d/60-ydotool-uinput.rules
+
+# The kernel module backing /dev/uinput. Usually autoloaded once something
+# opens the device, but the daemon starts at login and would otherwise race
+# with that, so it is loaded at boot instead.
+ydotool_modules_load_path: /etc/modules-load.d/ydotool.conf

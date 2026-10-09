@@ -1,0 +1,6 @@
+---
+- name: Install Gaze face authentication
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - gaze

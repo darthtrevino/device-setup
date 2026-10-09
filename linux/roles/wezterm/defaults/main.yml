@@ -1,0 +1,55 @@
+---
+# WezTerm is not in Fedora's repositories, and upstream publishes no stable
+# Fedora channel -- their own Fedora instructions point at this nightly COPR.
+#
+# Declared here rather than enabled with `dnf copr enable`, which is an
+# unguarded command this role would have to make idempotent by hand, and which
+# hides gpgcheck and metadata_expire behind a generated file.
+wezterm_copr_owner: wezfurlong
+wezterm_copr_project: wezterm-nightly
+wezterm_copr_baseurl: >-
+  https://download.copr.fedorainfracloud.org/results/{{ wezterm_copr_owner }}/{{ wezterm_copr_project }}/fedora-$releasever-$basearch/
+wezterm_copr_gpgkey: >-
+  https://download.copr.fedorainfracloud.org/results/{{ wezterm_copr_owner }}/{{ wezterm_copr_project }}/pubkey.gpg
+
+# The metapackage, which pulls in wezterm-gui and wezterm-common.
+wezterm_package: wezterm
+
+# WezTerm reads $XDG_CONFIG_HOME/wezterm/wezterm.lua ahead of $HOME/.wezterm.lua,
+# so this location both is the conventional one and wins over an older dotfile
+# left in the home directory.
+wezterm_config_dir: "{{ workstation_config_dir }}/wezterm"
+wezterm_config_path: "{{ wezterm_config_dir }}/wezterm.lua"
+
+# Translucent background. Compositing is required, which Plasma on Wayland
+# provides; without it WezTerm just renders opaque.
+wezterm_background_opacity: 0.8
+
+# Applies to cells that set their own background, which is most of the screen
+# under a full-screen TUI such as Herdr or an agent CLI. Such a pane composites
+# this layer on top of the already translucent window, so the two stacked
+# layers read darker than the window alone; kept below
+# wezterm_background_opacity to bring a TUI pane back in line with the rest.
+wezterm_text_background_opacity: 0.7
+
+# WezTerm asks for confirmation before closing a window that still has
+# processes running, which fires on nearly every close because the shell
+# itself counts. Turned off; the mux keeps unattached panes alive regardless.
+wezterm_confirm_window_close: false
+
+# Plasma ships no default terminal, so KIO falls back to konsole. KIO's
+# terminal launcher prefers TerminalService, a desktop file that also carries
+# the name and icon shown in System Settings, and only falls back to
+# TerminalApplication, a bare executable, when that is unset. Both are written
+# so the setting holds whichever path a given KDE application takes.
+wezterm_set_default_terminal: true
+wezterm_desktop_file: org.wezfurlong.wezterm.desktop
+wezterm_kdeglobals: "{{ workstation_config_dir }}/kdeglobals"
+
+# Attaching to a remote WezTerm multiplexer is opt-in. Leaving the host empty
+# emits no domain at all, so the config stays valid on a machine that has no
+# such peer -- a declared but unreachable domain would otherwise surface as a
+# connection error every time the domain list is opened.
+wezterm_mux_host: ""
+wezterm_mux_user: "{{ ansible_user_id }}"
+wezterm_mux_name: "{{ wezterm_mux_host }}"

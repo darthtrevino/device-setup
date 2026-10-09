@@ -1,0 +1,32 @@
+---
+- name: Ensure the user font directory exists
+  ansible.builtin.file:
+    path: "{{ workstation_fonts_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Install every Hack Nerd Font variant
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ workstation_fonts_dir }}/{{ item | basename }}"
+    mode: "0644"
+  loop: "{{ query('fileglob', role_path ~ '/files/*.ttf') | sort }}"
+  notify: rebuild font cache
+
+- name: Read the current desktop monospace font
+  ansible.builtin.command:
+    cmd: gsettings get org.gnome.desktop.interface monospace-font-name
+  register: nerd_fonts_hack_current
+  changed_when: false
+  check_mode: false
+  failed_when: false
+  when: nerd_fonts_hack_set_monospace | bool
+
+- name: Set Hack Nerd Font Mono as the desktop monospace font
+  ansible.builtin.command:
+    cmd: "gsettings set org.gnome.desktop.interface monospace-font-name '{{ nerd_fonts_hack_monospace_font }}'"
+  changed_when: true
+  when:
+    - nerd_fonts_hack_set_monospace | bool
+    - nerd_fonts_hack_current.rc | default(1) == 0
+    - nerd_fonts_hack_monospace_font not in (nerd_fonts_hack_current.stdout | default(''))

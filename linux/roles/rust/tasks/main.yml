@@ -1,0 +1,39 @@
+---
+- name: Check whether rustup is already installed
+  ansible.builtin.stat:
+    path: "{{ rust_rustup_home }}/bin/rustup"
+  register: rust_rustup_binary
+
+- name: Install Rust via rustup
+  when: not rust_rustup_binary.stat.exists
+  block:
+    - name: Download the rustup installer
+      ansible.builtin.get_url:
+        url: https://sh.rustup.rs
+        dest: /tmp/rustup-init.sh
+        mode: "0755"
+
+    - name: Run the rustup installer
+      ansible.builtin.command:
+        cmd: /tmp/rustup-init.sh -y --no-modify-path
+        creates: "{{ rust_rustup_home }}/bin/rustup"
+  always:
+    - name: Remove the rustup installer
+      ansible.builtin.file:
+        path: /tmp/rustup-init.sh
+        state: absent
+
+- name: Update the installed Rust toolchains
+  ansible.builtin.command:
+    cmd: "{{ rust_rustup_home }}/bin/rustup update"
+  register: rust_rustup_update
+  changed_when: "'unchanged' not in rust_rustup_update.stdout"
+  when:
+    - rust_rustup_binary.stat.exists
+    - rust_update_on_run | bool
+
+- name: Install the Rust shell integration snippet
+  ansible.builtin.copy:
+    src: rust.sh
+    dest: "{{ workstation_bashrcd }}/rust.sh"
+    mode: "0644"

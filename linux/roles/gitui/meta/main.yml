@@ -1,0 +1,5 @@
+---
+dependencies:
+  # A git TUI is only useful once git itself is installed and the commit
+  # identity is configured, which is what the git role does.
+  - role: git

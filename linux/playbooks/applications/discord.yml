@@ -1,0 +1,6 @@
+---
+- name: Install Discord
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - discord

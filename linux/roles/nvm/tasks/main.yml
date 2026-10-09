@@ -1,0 +1,13 @@
+---
+- name: Install NVM
+  ansible.builtin.git:
+    repo: https://github.com/nvm-sh/nvm.git
+    dest: "{{ nvm_install_dir }}"
+    version: "{{ nvm_version }}"
+    update: true
+
+- name: Install the NVM shell integration snippet
+  ansible.builtin.copy:
+    src: nvm.sh
+    dest: "{{ workstation_bashrcd }}/nvm.sh"
+    mode: "0644"

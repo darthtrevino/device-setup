@@ -1,0 +1,6 @@
+---
+- name: Install uv
+  become: true
+  ansible.builtin.dnf:
+    name: uv
+    state: present

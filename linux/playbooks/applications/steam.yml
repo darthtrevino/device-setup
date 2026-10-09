@@ -1,0 +1,6 @@
+---
+- name: Install Steam and device support
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - steam

@@ -1,0 +1,6 @@
+---
+- name: Install yt-dlp
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - yt_dlp

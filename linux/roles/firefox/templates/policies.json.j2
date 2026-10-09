@@ -1,0 +1,12 @@
+{
+  "policies": {
+    "ExtensionSettings": {
+{% for ext in firefox_extensions %}
+      {{ ext.guid | to_json }}: {
+        "installation_mode": "force_installed",
+        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/{{ ext.slug }}/latest.xpi"
+      }{{ "," if not loop.last else "" }}
+{% endfor %}
+    }
+  }
+}

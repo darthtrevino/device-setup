@@ -1,0 +1,55 @@
+---
+- name: Install the VoxType Tray runtime dependencies
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ voxtype_tray_packages }}"
+    state: present
+
+- name: Ensure the local bin directory exists
+  ansible.builtin.file:
+    path: "{{ workstation_local_bin }}"
+    state: directory
+    mode: "0755"
+
+# Checksummed rather than trusted, since this is a raw file from a branchable
+# ref rather than a signed release artifact.
+- name: Install the VoxType Tray application
+  ansible.builtin.get_url:
+    url: "{{ voxtype_tray_url }}"
+    dest: "{{ voxtype_tray_bin }}"
+    checksum: "{{ voxtype_tray_checksum }}"
+    mode: "0755"
+
+- name: Ensure the local applications directory exists
+  ansible.builtin.file:
+    path: "{{ workstation_applications_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Install the VoxType Tray desktop entry
+  ansible.builtin.template:
+    src: voxtype-tray.desktop.j2
+    dest: "{{ workstation_applications_dir }}/{{ voxtype_tray_desktop_file }}"
+    mode: "0644"
+
+- name: Ensure the autostart directory exists
+  ansible.builtin.file:
+    path: "{{ voxtype_tray_autostart_dir }}"
+    state: directory
+    mode: "0755"
+  when: voxtype_tray_autostart | bool
+
+# Plasma reads ~/.config/autostart independently of the applications directory,
+# so the same entry is written to both rather than symlinked between them.
+- name: Autostart VoxType Tray with the session
+  ansible.builtin.template:
+    src: voxtype-tray.desktop.j2
+    dest: "{{ voxtype_tray_autostart_dir }}/{{ voxtype_tray_desktop_file }}"
+    mode: "0644"
+  when: voxtype_tray_autostart | bool
+
+- name: Remove the VoxType Tray autostart entry
+  ansible.builtin.file:
+    path: "{{ voxtype_tray_autostart_dir }}/{{ voxtype_tray_desktop_file }}"
+    state: absent
+  when: not voxtype_tray_autostart | bool

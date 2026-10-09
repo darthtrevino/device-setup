@@ -1,0 +1,6 @@
+---
+- name: Install herdr
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - herdr

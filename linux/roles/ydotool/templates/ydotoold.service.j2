@@ -1,0 +1,17 @@
+[Unit]
+Description=ydotool daemon (virtual input device for text injection)
+Documentation=man:ydotoold(8)
+# Nothing can be typed before there is a session to type into.
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+# Socket permissions default to 0600 and the daemon runs as this user, so no
+# ownership override is needed.
+ExecStart=/usr/bin/ydotoold --socket-path={{ ydotool_socket }}
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

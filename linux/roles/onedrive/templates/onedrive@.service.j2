@@ -1,0 +1,33 @@
+[Unit]
+Description=OneDrive client for the %i account
+Documentation=man:onedrive(1)
+# Deliberately not ordered against network-online.target: that target does not
+# exist in the systemd *user* manager, and requiring it would fail the job
+# outright. The client tolerates starting before the network is up, and
+# Restart=on-failure covers the case where it does not.
+
+[Service]
+Type=simple
+# The confdir is derived from the instance name, so one template unit serves
+# every account. %h is the user's home; systemd requires an absolute path here,
+# which is why ~ cannot be used.
+ExecStart=/usr/bin/onedrive --monitor --confdir=%h/.config/onedrive-%i
+Restart=on-failure
+RestartSec=3
+# The client exits 126 when it needs a --resync, which is a decision for a
+# human rather than something to retry into a loop.
+RestartPreventExitStatus=126
+# An interrupted upload has to be unwound cleanly, so give it room to stop.
+TimeoutStopSec=90
+
+# Hardening kept in step with the unit the package ships. The client needs to
+# write only inside the home directory, so a read-only /usr and /etc costs it
+# nothing.
+ProtectSystem=full
+ProtectHostname=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictRealtime=true
+
+[Install]
+WantedBy=default.target
