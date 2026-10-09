@@ -12,7 +12,7 @@ brew "gh"
 # Task runner for Taskfile.yml (same tool as Task.Task on Windows and the task role on Linux)
 brew "go-task"
 # Agent multiplexer that lives in your terminal
-brew "herdr", restart_service: :changed
+brew "herdr"
 # Deep clean and optimize your Mac
 brew "mole"
 # Command-line shell and scripting language
