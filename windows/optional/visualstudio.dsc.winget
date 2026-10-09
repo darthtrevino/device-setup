@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
+#
+# OPTIONAL add-on: Visual Studio 2026 Enterprise with the workloads/components in visualstudio.vsconfig
+# (next to this file). Apply it after devbox\machine.dsc.winget on machines that need full Visual Studio;
+# skip it for VS Code-only setups. Requires a Visual Studio Enterprise license.
+#   Apply:  winget configure -f devbox\optional\visualstudio.dsc.winget --accept-configuration-agreements
+#   Check:  winget configure test -f devbox\optional\visualstudio.dsc.winget
+
+properties:
+  configurationVersion: 0.2.0
+
+  assertions:
+    - resource: Microsoft.Windows.Developer/OsVersion
+      directives: { description: "Require Windows 11", allowPrerelease: true }
+      settings: { MinVersion: "10.0.22000" }
+
+  resources:
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: visualStudio
+      directives: { description: "Visual Studio 2026 Enterprise", securityContext: elevated }
+      settings: { id: "Microsoft.VisualStudio.Enterprise", source: winget }
+
+    - resource: Microsoft.VisualStudio.DSC/VSComponents
+      dependsOn: [visualStudio]
+      directives: { description: "Visual Studio workloads and components", allowPrerelease: true, securityContext: elevated }
+      settings:
+        productId: Microsoft.VisualStudio.Product.Enterprise
+        channelId: VisualStudio.18.Release
+        vsConfigFile: '${WinGetConfigRoot}\visualstudio.vsconfig'
+        includeRecommended: false

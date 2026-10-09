@@ -1,0 +1,27 @@
+{
+    "workbench.editor.useModal": "some",
+    "git.autofetch": true,
+    "yaml.disableSchemaDetection": [
+        "azure-pipelines.yml",
+        "azure-pipelines.yaml"
+    ],
+    "redhat.telemetry.enabled": false,
+    "security.promptForLocalFileProtocolHandling": false,
+    "git.confirmSync": false,
+    "chat.tools.urls.autoApprove": {
+        "https://code.visualstudio.com": true,
+        "https://github.com/microsoft/vscode/wiki/*": true,
+        "https://github.com/nordsecurity/uniffi-bindgen-cs/tags": {
+            "approveRequest": false,
+            "approveResponse": true
+        },
+        "https://github.com": {
+            "approveRequest": false,
+            "approveResponse": true
+        },
+        "https://microsoft.github.io": true,
+        "https://*.github.io": true
+    },
+    "chat.viewSessions.orientation": "stacked",
+    "remote.SSH.localServerDownload": "auto"
+}
