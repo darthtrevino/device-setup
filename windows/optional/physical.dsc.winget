@@ -3,9 +3,9 @@
 # OPTIONAL add-on: apps for physical hardware only (laptops/desktops you sit in front of).
 # Skip it on remote machines (Microsoft Dev Box, cloud PCs, VMs) - e.g. the Windows App remote desktop
 # client is what you use to reach those machines, not something they need themselves.
-# Apply it after devbox\machine.dsc.winget.
-#   Apply:  winget configure -f devbox\optional\physical.dsc.winget --accept-configuration-agreements
-#   Check:  winget configure test -f devbox\optional\physical.dsc.winget
+# Apply it after windows\machine.dsc.winget.
+#   Apply:  winget configure -f windows\optional\physical.dsc.winget --accept-configuration-agreements
+#   Check:  winget configure test -f windows\optional\physical.dsc.winget
 
 properties:
   configurationVersion: 0.2.0

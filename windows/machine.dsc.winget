@@ -1,14 +1,14 @@
 # yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
 #
 # Dev workstation desired state.
-#   Apply:  winget configure -f devbox\machine.dsc.winget --accept-configuration-agreements
-#   Check:  winget configure test -f devbox\machine.dsc.winget
+#   Apply:  winget configure -f windows\machine.dsc.winget --accept-configuration-agreements
+#   Check:  winget configure test -f windows\machine.dsc.winget
 #
 # Generated from a `winget export` of the source machine plus its Windows settings.
 #
 # Optional add-on configurations (apply after this one, only when wanted):
-#   devbox\optional\visualstudio.dsc.winget  Visual Studio 2026 Enterprise + workloads (visualstudio.vsconfig)
-#   devbox\optional\physical.dsc.winget      Physical hardware only (not Dev Box / cloud PCs): Windows App
+#   windows\optional\visualstudio.dsc.winget  Visual Studio 2026 Enterprise + workloads (visualstudio.vsconfig)
+#   windows\optional\physical.dsc.winget      Physical hardware only (not Dev Box / cloud PCs): Windows App
 #
 # Intentionally NOT installed here:
 #   Framework / dependency packages (pulled in automatically by the apps that need them):

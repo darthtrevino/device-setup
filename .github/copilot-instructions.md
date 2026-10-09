@@ -1,18 +1,52 @@
-# Copilot Instructions for workstation-ansible
+# Copilot Instructions for device-setup
 
-This repository contains Ansible playbooks and roles for provisioning Fedora
+Baseline configuration for my workstations, one directory per platform plus
+configuration shared between them:
+
+```
+shared/              # cross-platform config; the single source of truth
+  git/               # gitconfig, gitconfig.local.example, auth.ps1 (PowerShell 7, all platforms)
+  package-feeds/     # npm/pip/uv/NuGet configs for the Microsoft package feed proxy
+  vscode/            # settings.json, extensions.txt
+linux/               # Fedora, Ansible (also published as the darthtrevino.workstation collection)
+macos/               # Homebrew Brewfile + bootstrap.sh
+windows/             # WinGet Configuration (*.dsc.winget) + bootstrap.ps1
+```
+
+## Cross-platform rules
+
+- Each platform uses its native tool (Ansible, Homebrew, WinGet). Do not
+  force one tool onto another platform.
+- Configuration that is identical across platforms lives once in `shared/`
+  and is installed by each platform's bootstrap or role. Never copy a shared
+  file into a platform directory; put platform-only additions next to the
+  platform (e.g. `windows/vscode-extensions.txt`).
+- Nothing personal or org-specific is committed: identities beyond the public
+  noreply address, EMU org names, GHE.com hosts and tokens live in
+  `~/.gitconfig.local` or the files `shared/git/auth.ps1` generates.
+- Dotfiles are symlinked into the repo, except package feed configs, which
+  are always copied: `npm login` and `dotnet nuget add source` write
+  credentials into them.
+- When adding a shared file, wire it into all three platforms
+  (`macos/bootstrap.sh`, `windows/bootstrap.ps1`, a role under `linux/roles`)
+  and update the README tables.
+- `macos/bootstrap.sh` targets the bash 3.2 that ships with macOS.
+
+## Linux (`linux/`)
+
+`linux/` contains Ansible playbooks and roles for provisioning Fedora
 workstations. It was previously a set of [Comtrya](https://comtrya.dev)
 manifests; Comtrya is unmaintained and the port is complete — do not add new
 Comtrya recipes.
 
-## Target Systems
+### Target Systems
 
 **Fedora on x86_64, and nothing else.** Ubuntu/Linux Mint/Debian support has
 been deliberately removed. Do not reintroduce `apt`, `.deb` handling, PPAs, or
 `ansible_distribution` branches for Debian-family systems. Assume `dnf`, RPM
 packaging, glibc, and Fedora package names (`vim-enhanced`, not `vim`).
 
-## Repository Structure
+### Repository Structure
 
 Standard Ansible layout:
 
@@ -29,9 +63,9 @@ Every role gets a matching single-role playbook in the appropriate functional
 subdirectory under `playbooks/`, and is added to `playbooks/workstation.yml`
 in the correct order.
 
-## Conventions
+### Conventions
 
-### Naming
+#### Naming
 
 - Role directories are `snake_case` (`zen_browser`, not `zen-browser`) to
   satisfy ansible-lint's `role-name` rule. Playbook filenames match the role.
@@ -40,26 +74,26 @@ in the correct order.
   Variables shared across roles belong in `group_vars/all/`.
 - Play and task names start with a capital letter (`name[casing]`).
 
-### Privilege Escalation
+#### Privilege Escalation
 
 `become` is off by default in `ansible.cfg`. Playbooks run as the workstation
 user and set `become: true` only on the individual tasks that need root. Run
 playbooks with `-K`. Never write a role that assumes it runs wholly as root.
 
-### Packages
+#### Packages
 
 Use `ansible.builtin.dnf`. Prefer a real repository (`yum_repository` +
 `rpm_key`) over downloading a one-off `.rpm`, so `dnf upgrade` keeps things
 current. Use `disable_gpg_check: true` only for release RPMs that ship their
 own key (RPM Fusion) or upstream GitHub release artifacts.
 
-### Containers
+#### Containers
 
 Rootless **Podman**, never Docker. No root daemon, no `docker` group. A
 Docker-compatible socket is exposed via `DOCKER_HOST` for tools that only
 speak the Docker API.
 
-### Idempotency
+#### Idempotency
 
 Comtrya's `command.run` ran unconditionally; Ansible equivalents must not.
 Guard `command`/`shell` with `creates:`, a preceding `stat`, or a read of
@@ -70,19 +104,21 @@ evaluate their conditionals correctly.
 Prefer real modules over shelling out: `get_url` over `curl`, `unarchive` over
 `tar`, `template` over `jq` merges, `blockinfile` over appending with `cat`.
 
-### Shell Integration
+#### Shell Integration
 
 Roles that need shell setup drop a single file into `~/.bashrc.d/` and depend
 on the `bashrcd` role via `meta/main.yml`. Do not append to `~/.bashrc`
 directly. Note that Fedora's stock `~/.bashrc` already sources `~/.bashrc.d`,
 so `bashrcd` only adds the loop when it is actually missing.
 
-### Comments
+#### Comments
 
 Explain *why*, not *what* — especially where a Fedora quirk, an upstream bug,
 or a deliberate deviation from the obvious approach drove the implementation.
 
-## Validation
+### Validation
+
+Run from `linux/`:
 
 ```bash
 ansible-lint                                     # must stay clean (production profile)
