@@ -9,6 +9,8 @@
 brew "azure-cli"
 # GitHub command-line tool
 brew "gh"
+# Task runner for Taskfile.yml (same tool as Task.Task on Windows and the task role on Linux)
+brew "go-task"
 # Agent multiplexer that lives in your terminal
 brew "herdr", restart_service: :changed
 # Deep clean and optimize your Mac
@@ -30,8 +32,9 @@ cask "github-copilot-app"
 cask "microsoft-azure-storage-explorer"
 # Multi-platform web browser
 cask "microsoft-edge"
-# Email client
-cask "microsoft-outlook"
+# Office suite (Word, Excel, PowerPoint, Outlook, OneNote, OneDrive); conflicts with the
+# standalone microsoft-outlook cask
+cask "microsoft-office"
 # Meet, chat, call, and collaborate in just one place
 cask "microsoft-teams"
 # Identity verification provider
