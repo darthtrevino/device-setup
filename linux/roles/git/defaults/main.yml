@@ -1,3 +1,6 @@
 ---
+# Seeds the default identity in ~/.gitconfig.local the first time it is
+# created; later edits to that file are left alone. Repos with a github.com
+# remote use the personal identity written by shared/git/auth.ps1 instead.
 git_user_name: Chris Trevino
 git_user_email: darthtrevino@users.noreply.github.com

@@ -5,16 +5,38 @@
     name: git
     state: present
 
-- name: Configure the Git user identity
-  community.general.git_config:
-    name: "{{ git_config_entry.name }}"
-    scope: global
-    value: "{{ git_config_entry.value }}"
-  loop:
-    - name: user.name
-      value: "{{ git_user_name }}"
-    - name: user.email
-      value: "{{ git_user_email }}"
-  loop_control:
-    loop_var: git_config_entry
-    label: "{{ git_config_entry.name }}"
+# ~/.gitconfig.local holds the machine's default identity and org credentials;
+# it is never committed, so it is seeded from the shared template exactly once
+# and later hand edits are left alone.
+- name: Create ~/.gitconfig.local from the shared template
+  ansible.builtin.copy:
+    content: >-
+      {{ lookup('ansible.builtin.file', workstation_shared_dir ~ '/git/gitconfig.local.example', rstrip=false)
+         | regex_replace('(?m)^\tname = .*$', '\tname = ' ~ git_user_name)
+         | regex_replace('(?m)^\temail = .*$', '\temail = ' ~ git_user_email) }}
+    dest: "{{ workstation_home }}/.gitconfig.local"
+    mode: "0644"
+    force: false
+
+- name: Inspect ~/.gitconfig
+  ansible.builtin.stat:
+    path: "{{ workstation_home }}/.gitconfig"
+  register: git_gitconfig
+  check_mode: false
+
+# Linking with force would silently delete a hand-written ~/.gitconfig; keep
+# it next to the link the same way the macOS and Windows bootstraps do.
+- name: Back up an existing ~/.gitconfig
+  ansible.builtin.command:
+    cmd: >-
+      mv {{ workstation_home }}/.gitconfig
+      {{ workstation_home }}/.gitconfig.{{ ansible_facts['date_time']['iso8601_basic_short'] }}.bak
+  when: git_gitconfig.stat.exists and not git_gitconfig.stat.islnk
+  changed_when: true
+
+- name: Link ~/.gitconfig to the shared Git config
+  ansible.builtin.file:
+    src: "{{ workstation_shared_dir }}/git/gitconfig"
+    dest: "{{ workstation_home }}/.gitconfig"
+    state: link
+    force: true

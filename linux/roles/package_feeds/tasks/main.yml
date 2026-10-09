@@ -1,0 +1,26 @@
+---
+- name: Ensure the package feed config directories exist
+  ansible.builtin.file:
+    path: "{{ package_feeds_dir_path }}"
+    state: directory
+    mode: "0755"
+  # Never the home directory itself: that would loosen its 0700 mode.
+  loop: >-
+    {{ package_feeds_files | map(attribute='dest') | map('dirname') | unique
+       | reject('equalto', workstation_home) | list }}
+  loop_control:
+    loop_var: package_feeds_dir_path
+
+# Copied rather than linked: `npm login` and `dotnet nuget add source` write
+# credentials into these files, which must never land in the repo through a
+# symlink. A file that drifted is kept as a backup before being replaced.
+- name: Install the package feed proxy configs
+  ansible.builtin.copy:
+    src: "{{ package_feeds_dir }}/{{ package_feeds_file.src }}"
+    dest: "{{ package_feeds_file.dest }}"
+    mode: "0644"
+    backup: true
+  loop: "{{ package_feeds_files }}"
+  loop_control:
+    loop_var: package_feeds_file
+    label: "{{ package_feeds_file.dest }}"

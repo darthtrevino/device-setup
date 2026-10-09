@@ -1,0 +1,6 @@
+---
+# Fedora does not package PowerShell; Microsoft's RHEL 9 repository is the
+# supported route and installs cleanly on Fedora. includepkgs keeps the rest of
+# that repository (dotnet, moby, ...) from shadowing Fedora's own packages.
+powershell_gpg_key_url: https://packages.microsoft.com/keys/microsoft.asc
+powershell_repo_baseurl: https://packages.microsoft.com/rhel/9/prod/

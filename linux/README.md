@@ -1,6 +1,8 @@
-# workstation-ansible
+# Linux (Fedora) workstation
 
-Ansible playbooks for provisioning my Fedora workstations.
+Ansible playbooks for provisioning my Fedora workstations. Part of
+[device-setup](../README.md); git, package feed and VS Code configuration is
+shared with the macOS and Windows setups from [`../shared`](../shared).
 
 Previously these were [Comtrya](https://comtrya.dev) manifests; Comtrya is no
 longer maintained, so everything has been ported to Ansible roles.
@@ -25,7 +27,13 @@ ansible-playbook playbooks/development/podman.yml -K
 
 # Preview without changing anything
 ansible-playbook playbooks/workstation.yml -K --check --diff
+
+# Sign gh into the GitHub accounts and generate the per-remote git routing
+# (interactive, so it is not run by Ansible)
+pwsh ../shared/git/auth.ps1
 ```
+
+All commands run from this `linux/` directory, where `ansible.cfg` lives.
 
 On a machine running face authentication, `pam_gaze` runs ahead of sudo's
 password prompt, and a scan that fails costs anywhere from a fraction of a
@@ -83,7 +91,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `flatpak` | Installs Flatpak and enables the system-wide Flathub remote |
 | `firefox` | Installs Firefox and force-installs Bitwarden and uBlock Origin |
 | `gaze` | Installs [Gaze](https://github.com/GunduLabs/gaze) face authentication for the KDE lock screen, sudo and polkit |
-| `git` | Installs Git and configures the user identity |
+| `git` | Installs Git, links the shared `~/.gitconfig` and seeds the default identity in `~/.gitconfig.local` |
 | `github_cli` | Installs GitHub CLI from Fedora's package repository |
 | `github_copilot_cli` | Installs the native GitHub Copilot CLI |
 | `github_copilot_app` | Installs the GitHub Copilot desktop app from GitHub's release RPM |
@@ -101,7 +109,9 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `nvm` | Installs Node Version Manager and Bash integration |
 | `onedrive` | Syncs one or more OneDrive accounts, each as its own systemd user service |
 | `onedrive_tray` | Builds [onedrive_tray](https://github.com/DanielBorgesOliveira/onedrive_tray) and supervises each OneDrive account from the system tray |
+| `package_feeds` | Points npm, pip, uv and NuGet at the Microsoft package feed proxy (`../shared/package-feeds`) |
 | `podman` | Installs **rootless** Podman and exposes a Docker-compatible socket |
+| `powershell` | Installs PowerShell 7 from Microsoft's RHEL 9 repository (runs `../shared/git/auth.ps1`) |
 | `ripgrep` | Installs [ripgrep](https://github.com/BurntSushi/ripgrep) (`rg`) |
 | `rpmfusion` | Enables the RPM Fusion free and nonfree repositories |
 | `rust` | Installs Rust via rustup and keeps toolchains updated |
@@ -115,7 +125,7 @@ Roles are `snake_case` to satisfy `ansible-lint`'s `role-name` rule.
 | `tealdeer` | Installs tealdeer and primes the tldr cache |
 | `uv` | Installs Astral's Python package and project manager from Fedora |
 | `vim` | Installs Vim (`vim-enhanced`) |
-| `vscode` | Installs Visual Studio Code from Microsoft's dnf repository |
+| `vscode` | Installs Visual Studio Code from Microsoft's dnf repository, links the shared settings and installs the shared extensions |
 | `voxtype` | Installs [Voxtype](https://github.com/peteonrails/voxtype) voice-to-text with a KDE toggle shortcut |
 | `wallpaper_randomizer` | Selects a random KDE wallpaper at startup and every 15 minutes |
 | `wezterm` | Installs [WezTerm](https://wezterm.org) and its Lua configuration |
@@ -151,7 +161,12 @@ zsa_keyboard                                 ->  workstation
 zen_browser_extensions, zen_browser_policies -> zen_browser
 wallpaper_randomizer                         -> workstation
 jetbrains_mono                               -> workstation
+git, package_feeds, vscode                   -> workstation
 ```
+
+Roles that read `../shared` locate it through `workstation_shared_dir`.
+Consumers of the collection that do not have the device-setup checkout must
+set that variable to one.
 
 ## Manual Steps
 

@@ -1,0 +1,24 @@
+---
+- name: Import the Microsoft package signing key
+  become: true
+  ansible.builtin.rpm_key:
+    key: "{{ powershell_gpg_key_url }}"
+    state: present
+
+- name: Configure the Microsoft production dnf repository for PowerShell
+  become: true
+  ansible.builtin.yum_repository:
+    name: microsoft-prod-powershell
+    description: Microsoft Production (PowerShell only)
+    baseurl: "{{ powershell_repo_baseurl }}"
+    enabled: true
+    gpgcheck: true
+    gpgkey: "{{ powershell_gpg_key_url }}"
+    includepkgs:
+      - powershell
+
+- name: Install PowerShell
+  become: true
+  ansible.builtin.dnf:
+    name: powershell
+    state: present

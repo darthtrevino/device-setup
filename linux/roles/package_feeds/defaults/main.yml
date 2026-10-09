@@ -1,0 +1,14 @@
+---
+# Points npm/pnpm, pip, uv and NuGet at the Microsoft scanned artifact proxy.
+# The files themselves are shared with macOS and Windows; see
+# shared/package-feeds/README.md.
+package_feeds_dir: "{{ workstation_shared_dir }}/package-feeds"
+package_feeds_files:
+  - src: npmrc
+    dest: "{{ workstation_home }}/.npmrc"
+  - src: pip.conf
+    dest: "{{ workstation_config_dir }}/pip/pip.conf"
+  - src: uv.toml
+    dest: "{{ workstation_config_dir }}/uv/uv.toml"
+  - src: NuGet.Config
+    dest: "{{ workstation_home }}/.nuget/NuGet/NuGet.Config"

@@ -20,3 +20,61 @@
   ansible.builtin.dnf:
     name: code
     state: present
+
+- name: Ensure the VS Code user settings directory exists
+  ansible.builtin.file:
+    path: "{{ vscode_settings_dir }}"
+    state: directory
+    mode: "0700"
+
+- name: Inspect the VS Code user settings
+  ansible.builtin.stat:
+    path: "{{ vscode_settings_dir }}/settings.json"
+  register: vscode_settings
+  check_mode: false
+
+- name: Back up existing VS Code user settings
+  ansible.builtin.command:
+    cmd: >-
+      mv {{ vscode_settings_dir }}/settings.json
+      {{ vscode_settings_dir }}/settings.json.{{ ansible_facts['date_time']['iso8601_basic_short'] }}.bak
+  when: vscode_settings.stat.exists and not vscode_settings.stat.islnk
+  changed_when: true
+
+- name: Link the VS Code user settings to the shared settings
+  ansible.builtin.file:
+    src: "{{ workstation_shared_dir }}/vscode/settings.json"
+    dest: "{{ vscode_settings_dir }}/settings.json"
+    state: link
+    force: true
+
+- name: Read the private VS Code extension list
+  ansible.builtin.slurp:
+    src: "{{ vscode_local_extensions_file }}"
+  register: vscode_local_extensions
+  failed_when: false
+  check_mode: false
+
+- name: List installed VS Code extensions
+  ansible.builtin.command:
+    cmd: code --list-extensions
+  register: vscode_installed_extensions
+  changed_when: false
+  check_mode: false
+  # In --check on a fresh machine the install task above did not really run.
+  failed_when: vscode_installed_extensions.rc != 0 and not ansible_check_mode
+
+# Extension IDs are case-insensitive, and `code --list-extensions` does not
+# preserve the case used in the list files.
+- name: Install VS Code extensions
+  ansible.builtin.command:
+    cmd: code --install-extension {{ vscode_extension }}
+  loop: >-
+    {{ (vscode_extensions
+        + ((vscode_local_extensions.content | default('') | b64decode).splitlines()
+           | map('trim') | reject('match', '^(#|$)') | list))
+       | unique }}
+  loop_control:
+    loop_var: vscode_extension
+  when: vscode_extension | lower not in (vscode_installed_extensions.stdout_lines | map('lower') | list)
+  changed_when: true

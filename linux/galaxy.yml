@@ -6,9 +6,14 @@
 #
 #   # requirements.yml
 #   collections:
-#     - name: https://github.com/darthtrevino/ansible-playbooks.git
+#     - name: https://github.com/darthtrevino/device-setup.git#/linux/
 #       type: git
 #       version: main
+#
+# The collection lives in the linux/ subdirectory of device-setup (the #/linux/
+# suffix). Roles that read the repo's top-level shared/ tree (git,
+# package_feeds, vscode) need workstation_shared_dir pointed at a checkout of
+# it; the rest are self-contained.
 #
 # Roles are then referenced by FQCN, e.g. darthtrevino.workstation.starship, which
 # removes any chance of a name collision with a consuming repo's own roles.
@@ -35,8 +40,8 @@ tags:
   - fedora
   - workstation
   - desktop
-repository: https://github.com/darthtrevino/ansible-playbooks
-issues: https://github.com/darthtrevino/ansible-playbooks/issues
+repository: https://github.com/darthtrevino/device-setup
+issues: https://github.com/darthtrevino/device-setup/issues
 dependencies: {}
 
 # Files that configure *this* repo as a control node; they are meaningless to a

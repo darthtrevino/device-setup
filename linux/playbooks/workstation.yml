@@ -10,6 +10,9 @@
     - rpmfusion
     - flatpak
     - bashrcd
+    # Before anything that installs language packages, so npm, pip, uv and
+    # NuGet resolve through the proxy from the first run.
+    - package_feeds
 
     # ── System maintenance ──
     # After rpmfusion, so unattended upgrades cover it from the first run.
@@ -18,6 +21,8 @@
     # ── Command line tooling ──
     - git
     - github_cli
+    # Runs shared/git/auth.ps1, which generates the gh credential helpers.
+    - powershell
     - github_copilot_cli
     - github_copilot_app
     - gitui

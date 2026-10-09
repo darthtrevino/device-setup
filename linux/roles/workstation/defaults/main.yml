@@ -27,3 +27,10 @@ workstation_config_dir: "{{ workstation_home }}/.config"
 # Per-user binaries. Fedora's stock ~/.bashrc prepends this to PATH ahead of
 # /usr/bin, so a wrapper dropped here shadows the system copy of the same name.
 workstation_local_bin: "{{ workstation_home }}/.local/bin"
+
+# Cross-platform config shared with the macOS and Windows setups (git, package
+# feeds, VS Code), at the root of the device-setup repository. role_path is
+# resolved lazily, so this is the same directory from every role in roles/.
+# Consumers of the collection that do not ship the shared/ tree must override
+# it to point at a checkout of device-setup.
+workstation_shared_dir: "{{ (role_path ~ '/../../../shared') | realpath }}"

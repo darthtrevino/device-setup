@@ -1,0 +1,6 @@
+---
+- name: Point package managers at the Microsoft package feed proxy
+  hosts: workstations
+  gather_facts: true
+  roles:
+    - package_feeds
